@@ -1,5 +1,5 @@
-import { GoogleGenAI, VideoGenerationReferenceType } from "@google/genai";
-import { createClient } from "../../../../lib/supabase/server";
+﻿import { GoogleGenAI, VideoGenerationReferenceType } from "@google/genai";
+import { createClient } from "../../../../../lib/supabase/server";
 
 type ReferenceImage = {
   name?: string;
@@ -201,3 +201,4 @@ export async function POST(req: Request) {
     );
   }
 }
+

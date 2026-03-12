@@ -68,3 +68,44 @@ textarea {
     grid-template-columns: 1fr;
   }
 }
+
+.reveal-up {
+  opacity: 0;
+  transform: translateY(16px);
+  animation: reveal-up 0.6s ease forwards;
+}
+
+.float-a {
+  animation: float-a 8s ease-in-out infinite;
+}
+
+.float-b {
+  animation: float-b 9s ease-in-out infinite;
+}
+
+@keyframes reveal-up {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float-a {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(8px, -10px, 0);
+  }
+}
+
+@keyframes float-b {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(-10px, 12px, 0);
+  }
+}

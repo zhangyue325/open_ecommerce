@@ -1,4 +1,4 @@
-import { createClient } from "../../../lib/supabase/server";
+﻿import { createClient } from "../../../../lib/supabase/server";
 import TemplateList from "./templateList";
 
 export default async function TemplatePage() {
@@ -54,3 +54,4 @@ export default async function TemplatePage() {
     </section>
   );
 }
+

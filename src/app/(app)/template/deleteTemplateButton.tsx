@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "../../../lib/supabase/client";
+import { createClient } from "../../../../lib/supabase/client";
 
 export default function DeleteTemplateButton({ templateId }: { templateId: number }) {
   const router = useRouter();
@@ -54,3 +54,4 @@ export default function DeleteTemplateButton({ templateId }: { templateId: numbe
     </button>
   );
 }
+

@@ -1,8 +1,6 @@
 ﻿import type { Metadata } from "next";
 import { Bricolage_Grotesque, Space_Mono } from "next/font/google";
 import "./globals.css";
-import TopNav from "./components/top-nav";
-import SimpleLoginGate from "./components/simple-login-gate";
 
 const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
@@ -29,14 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${bricolage.variable} ${spaceMono.variable}`}>
-        <SimpleLoginGate>
-          <TopNav />
-          <main>
-            <div className="flex flex-col gap-6">
-              {children}
-            </div>
-          </main>
-        </SimpleLoginGate>
+        {children}
       </body>
     </html>
   );

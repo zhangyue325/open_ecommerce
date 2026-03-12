@@ -15,7 +15,7 @@ export default function TopNav() {
   return (
     <nav className="surface-card px-5 py-3 flex flex-wrap items-center gap-3 sticky top-0 z-50">
       <div className="flex items-center gap-3">
-        <span className="text-sm font-semibold">Pazzion Creative Studio</span>
+        <span className="text-sm font-semibold">Yellow Pixel</span>
       </div>
 
       <div className="flex flex-wrap items-center gap-2 md:ml-6">

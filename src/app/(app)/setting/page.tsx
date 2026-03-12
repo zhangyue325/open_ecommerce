@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "../../../lib/supabase/client";
+import { createClient } from "../../../../lib/supabase/client";
 
 type PurposePromptItem = {
   id: string;
@@ -220,3 +220,4 @@ export default function SettingPage() {
     </section>
   );
 }
+

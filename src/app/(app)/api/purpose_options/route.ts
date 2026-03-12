@@ -1,4 +1,4 @@
-import { createClient } from "../../../../lib/supabase/server";
+﻿import { createClient } from "../../../../../lib/supabase/server";
 
 export async function GET() {
   try {
@@ -28,3 +28,4 @@ export async function GET() {
     );
   }
 }
+
