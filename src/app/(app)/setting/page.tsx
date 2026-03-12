@@ -10,15 +10,36 @@ type PurposePromptItem = {
 };
 
 export default function SettingPage() {
-  const supabase = createClient();
-
   const [setting, setSetting] = useState<any>(null);
   const [prompt, setPrompt] = useState("");
   const [purposeItems, setPurposeItems] = useState<PurposePromptItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [configError, setConfigError] = useState<string | null>(null);
+
+  const getSupabaseClient = () => {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key =
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+    if (!url || !key) {
+      return null;
+    }
+
+    return createClient();
+  };
 
   useEffect(() => {
     async function load() {
+      const supabase = getSupabaseClient();
+      if (!supabase) {
+        setConfigError(
+          "Missing Supabase env vars. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY."
+        );
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from("setting")
         .select("id,user_name,main_prompt,logo,purpose_prompt")
@@ -51,6 +72,11 @@ export default function SettingPage() {
 
   async function save() {
     if (!setting) return;
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      alert("Missing Supabase env vars.");
+      return;
+    }
 
     const purposePrompt: Record<string, string> = {};
 
@@ -102,6 +128,7 @@ export default function SettingPage() {
   }
 
   if (loading) return <div className="p-6">Loading...</div>;
+  if (configError) return <div className="p-6 text-sm text-red-600">{configError}</div>;
 
   return (
     <section className="surface-card p-6 md:p-8 flex flex-col gap-8">
