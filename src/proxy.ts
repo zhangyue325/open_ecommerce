@@ -15,7 +15,7 @@ const LANDING_HOSTS = new Set([
   "www.yellowpixel.ai",
 ]);
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const host = req.headers.get("host") || "";
   const hostname = host.split(":")[0];
   const url = req.nextUrl.clone();
@@ -31,8 +31,7 @@ export function middleware(req: NextRequest) {
       return NextResponse.next();
     }
 
-    url.pathname =
-      url.pathname === "/" ? "/landing" : `/landing${url.pathname}`;
+    url.pathname = url.pathname === "/" ? "/landing" : `/landing${url.pathname}`;
     return NextResponse.rewrite(url);
   }
 
