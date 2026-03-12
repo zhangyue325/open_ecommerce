@@ -1,0 +1,70 @@
+﻿@import "tailwindcss";
+
+:root {
+  --background: #f8f5f0;
+  --foreground: #1b1a18;
+  --surface: #ffffff;
+  --surface-2: #f1e8dc;
+  --accent: #ff7a00;
+  --accent-2: #0a7b60;
+  --ink-muted: #5a564f;
+  --ring: rgba(27, 26, 24, 0.12);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-display);
+  --font-mono: var(--font-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(1200px 800px at 10% -10%, #ffe2b8 0%, transparent 60%),
+    radial-gradient(900px 700px at 110% 10%, #c2f1e4 0%, transparent 55%),
+    var(--background);
+  color: var(--foreground);
+  font-family: var(--font-display), system-ui, sans-serif;
+}
+
+main {
+  min-height: 100vh;
+  padding: 40px clamp(20px, 4vw, 64px) 72px;
+}
+
+button {
+  font-family: inherit;
+}
+
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+::selection {
+  background: #ffd9b0;
+}
+
+.surface-card {
+  background: var(--surface);
+  border: 1px solid var(--ring);
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(27, 26, 24, 0.08);
+}
+
+.grid-shell {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+  gap: 28px;
+}
+
+@media (max-width: 960px) {
+  .grid-shell {
+    grid-template-columns: 1fr;
+  }
+}
