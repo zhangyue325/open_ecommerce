@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 const APP_HOSTS = new Set([
   "app.localhost",
   "app.yellowpixel.io",
-  "app.yellowpixel.ai",
 ]);
 
 const LANDING_HOSTS = new Set([
@@ -11,8 +10,6 @@ const LANDING_HOSTS = new Set([
   "www.localhost",
   "yellowpixel.io",
   "www.yellowpixel.io",
-  "yellowpixel.ai",
-  "www.yellowpixel.ai",
 ]);
 
 export function proxy(req: NextRequest) {

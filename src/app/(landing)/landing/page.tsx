@@ -37,7 +37,7 @@ const steps = [
 ];
 
 export default function LandingPage() {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.yellowpixel.ai";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.yellowpixel.io";
 
   return (
     <main className="relative overflow-hidden px-5 pb-16 pt-10 md:px-10 md:pb-24 md:pt-14">
