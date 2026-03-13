@@ -1,7 +1,24 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
+
 import { createClient } from "../../../../lib/supabase/client";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  type CarouselApi,
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { ChevronDownIcon } from "lucide-react";
 
 type PurposePromptItem = {
   id: string;
@@ -9,12 +26,75 @@ type PurposePromptItem = {
   prompt: string;
 };
 
+type SettingRecord = {
+  id: number;
+  logo: string | null;
+  main_prompt: string | null;
+  purpose_prompt: unknown;
+  sample_image?: unknown;
+};
+
+type SampleImageItem = {
+  id: string;
+  url: string;
+  label: string;
+};
+
+const SAMPLE_STORAGE_BUCKET = "template";
+const SAMPLE_STORAGE_FOLDER = "sample-image";
+const LOGO_STORAGE_BUCKET = "template";
+const LOGO_STORAGE_FOLDER = "logo";
+
+function toPurposeItems(value: unknown): PurposePromptItem[] {
+  const source = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+
+  return Object.entries(source).map(([name, prompt]) => ({
+    id: `${Date.now()}-${Math.random()}-${name}`,
+    name,
+    prompt: String(prompt ?? ""),
+  }));
+}
+
+function toSampleImages(value: unknown): SampleImageItem[] {
+  if (!value || typeof value !== "object") return [];
+
+  const entries = Object.entries(value as Record<string, unknown>).filter(
+    ([, url]) => typeof url === "string" && Boolean(url.trim())
+  );
+
+  entries.sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true }));
+
+  return entries.map(([key, url], index) => ({
+    id: `sample-${key}-${index}`,
+    url: String(url),
+    label: `Sample ${key}`,
+  }));
+}
+
+function toSampleImagePayload(items: SampleImageItem[]) {
+  return items.reduce<Record<string, string>>((acc, item, index) => {
+    acc[String(index + 1)] = item.url;
+    return acc;
+  }, {});
+}
+
+function sanitizeFileName(name: string) {
+  return name.replace(/[^a-zA-Z0-9._-]/g, "_");
+}
+
 export default function SettingPage() {
-  const [setting, setSetting] = useState<any>(null);
+  const [setting, setSetting] = useState<SettingRecord | null>(null);
   const [prompt, setPrompt] = useState("");
   const [purposeItems, setPurposeItems] = useState<PurposePromptItem[]>([]);
+  const [sampleImages, setSampleImages] = useState<SampleImageItem[]>([]);
+  const [openPurposeId, setOpenPurposeId] = useState("");
+  const [sampleApi, setSampleApi] = useState<CarouselApi | null>(null);
+  const [sampleIndex, setSampleIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [configError, setConfigError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [uploadingSamples, setUploadingSamples] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   const getSupabaseClient = () => {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -32,6 +112,7 @@ export default function SettingPage() {
   useEffect(() => {
     async function load() {
       const supabase = getSupabaseClient();
+
       if (!supabase) {
         setConfigError(
           "Missing Supabase env vars. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY."
@@ -42,36 +123,216 @@ export default function SettingPage() {
 
       const { data, error } = await supabase
         .from("setting")
-        .select("id,user_name,main_prompt,logo,purpose_prompt")
+        .select("*")
         .eq("user_name", "Pazzion")
         .single();
 
-      if (!error && data) {
-        setSetting(data);
-        setPrompt(data.main_prompt || "");
-
-        const rawPurposePrompt =
-          data.purpose_prompt && typeof data.purpose_prompt === "object"
-            ? data.purpose_prompt
-            : {};
-
-        const items = Object.entries(rawPurposePrompt).map(([name, value]) => ({
-          id: `${Date.now()}-${Math.random()}-${name}`,
-          name,
-          prompt: String(value ?? ""),
-        }));
-
-        setPurposeItems(items);
+      if (error || !data) {
+        setConfigError(error?.message ?? "Unable to load settings.");
+        setLoading(false);
+        return;
       }
 
+      const nextSetting = data as SettingRecord;
+      const loadedPurposeItems = toPurposeItems(nextSetting.purpose_prompt);
+      setSetting(nextSetting);
+      setPrompt(nextSetting.main_prompt || "");
+      setPurposeItems(loadedPurposeItems);
+      setSampleImages(toSampleImages(nextSetting.sample_image));
+      setOpenPurposeId("");
       setLoading(false);
     }
 
     load();
   }, []);
 
+  useEffect(() => {
+    if (!sampleApi) return;
+
+    const onSelect = () => {
+      setSampleIndex(sampleApi.selectedScrollSnap());
+    };
+
+    onSelect();
+    sampleApi.on("select", onSelect);
+    sampleApi.on("reInit", onSelect);
+
+    return () => {
+      sampleApi.off("select", onSelect);
+      sampleApi.off("reInit", onSelect);
+    };
+  }, [sampleApi, sampleImages.length]);
+
+  async function persistSampleImages(nextItems: SampleImageItem[]) {
+    if (!setting) return;
+
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      alert("Missing Supabase env vars.");
+      return;
+    }
+
+    const payload = toSampleImagePayload(nextItems);
+    const { error } = await supabase
+      .from("setting")
+      .update({ sample_image: payload })
+      .eq("id", setting.id);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    setSetting((prev) =>
+      prev
+        ? {
+            ...prev,
+            sample_image: payload,
+          }
+        : prev
+    );
+  }
+
+  async function persistLogo(nextLogoUrl: string | null) {
+    if (!setting) return;
+
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      alert("Missing Supabase env vars.");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("setting")
+      .update({ logo: nextLogoUrl })
+      .eq("id", setting.id);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    setSetting((prev) =>
+      prev
+        ? {
+            ...prev,
+            logo: nextLogoUrl,
+          }
+        : prev
+    );
+  }
+
+  async function onChangeLogo(files: FileList | null) {
+    if (!files || files.length === 0 || !setting) return;
+
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      alert("Missing Supabase env vars.");
+      return;
+    }
+
+    const file = files[0];
+    setUploadingLogo(true);
+
+    const safeFileName = sanitizeFileName(file.name || "logo");
+    const storagePath = `${LOGO_STORAGE_FOLDER}/${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2)}-${safeFileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from(LOGO_STORAGE_BUCKET)
+      .upload(storagePath, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type || undefined,
+      });
+
+    if (uploadError) {
+      alert(uploadError.message);
+      setUploadingLogo(false);
+      return;
+    }
+
+    const { data } = supabase.storage.from(LOGO_STORAGE_BUCKET).getPublicUrl(storagePath);
+    const publicUrl = data.publicUrl || null;
+    await persistLogo(publicUrl);
+    setUploadingLogo(false);
+  }
+
+  async function onRemoveLogo() {
+    await persistLogo(null);
+  }
+
+  async function onAddSampleImages(files: FileList | null) {
+    if (!files || files.length === 0 || !setting) return;
+
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      alert("Missing Supabase env vars.");
+      return;
+    }
+
+    setUploadingSamples(true);
+
+    const uploadedItems: SampleImageItem[] = [];
+    for (const file of Array.from(files)) {
+      const safeFileName = sanitizeFileName(file.name || "sample");
+      const storagePath = `${SAMPLE_STORAGE_FOLDER}/${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2)}-${safeFileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from(SAMPLE_STORAGE_BUCKET)
+        .upload(storagePath, file, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: file.type || undefined,
+        });
+
+      if (uploadError) {
+        alert(uploadError.message);
+        setUploadingSamples(false);
+        return;
+      }
+
+      const { data } = supabase.storage.from(SAMPLE_STORAGE_BUCKET).getPublicUrl(storagePath);
+      if (data.publicUrl) {
+        const nextIndex = sampleImages.length + uploadedItems.length + 1;
+        uploadedItems.push({
+          id: `sample-new-${Date.now()}-${Math.random()}`,
+          url: data.publicUrl,
+          label: `Sample ${nextIndex}`,
+        });
+      }
+    }
+
+    const nextItems = [...sampleImages, ...uploadedItems].map((item, index) => ({
+      ...item,
+      label: `Sample ${index + 1}`,
+    }));
+    setSampleImages(nextItems);
+    await persistSampleImages(nextItems);
+    setUploadingSamples(false);
+  }
+
+  async function onDeleteCurrentSample() {
+    if (sampleImages.length === 0) return;
+
+    const nextItems = sampleImages
+      .filter((_, index) => index !== sampleIndex)
+      .map((item, index) => ({
+        ...item,
+        label: `Sample ${index + 1}`,
+      }));
+
+    setSampleImages(nextItems);
+    setSampleIndex((prev) => Math.max(0, Math.min(prev, nextItems.length - 1)));
+    await persistSampleImages(nextItems);
+  }
+
   async function save() {
     if (!setting) return;
+
     const supabase = getSupabaseClient();
     if (!supabase) {
       alert("Missing Supabase env vars.");
@@ -92,23 +353,35 @@ export default function SettingPage() {
       purposePrompt[key] = item.prompt;
     }
 
-    await supabase
+    setSaving(true);
+    const sampleImagePayload = toSampleImagePayload(sampleImages);
+    const { error } = await supabase
       .from("setting")
-      .update({ main_prompt: prompt, purpose_prompt: purposePrompt })
+      .update({
+        logo: setting.logo,
+        main_prompt: prompt,
+        purpose_prompt: purposePrompt,
+        sample_image: sampleImagePayload,
+      })
       .eq("id", setting.id);
+    setSaving(false);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
 
     alert("Saved");
   }
 
   function addPurpose() {
-    setPurposeItems((prev) => [
-      ...prev,
-      {
-        id: `${Date.now()}-${Math.random()}`,
-        name: "",
-        prompt: "",
-      },
-    ]);
+    const newItem = {
+      id: `${Date.now()}-${Math.random()}`,
+      name: "",
+      prompt: "",
+    };
+    setPurposeItems((prev) => [...prev, newItem]);
+    setOpenPurposeId(newItem.id);
   }
 
   function updatePurposeName(id: string, nextName: string) {
@@ -124,143 +397,247 @@ export default function SettingPage() {
   }
 
   function removePurpose(id: string) {
-    setPurposeItems((prev) => prev.filter((item) => item.id !== id));
+    setPurposeItems((prev) => {
+      const nextItems = prev.filter((item) => item.id !== id);
+      if (openPurposeId === id) {
+        setOpenPurposeId(nextItems[0]?.id ?? "");
+      }
+      return nextItems;
+    });
   }
 
-  if (loading) return <div className="p-6">Loading...</div>;
-  if (configError) return <div className="p-6 text-sm text-red-600">{configError}</div>;
+  if (loading) {
+    return <div className="p-6 text-sm text-muted-foreground">Loading settings...</div>;
+  }
+
+  if (configError) {
+    return (
+      <div className="p-6">
+        <Alert variant="destructive">
+          <AlertTitle>Settings unavailable</AlertTitle>
+          <AlertDescription>{configError}</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
-    <section className="surface-card p-6 md:p-8 flex flex-col gap-8">
-
-      <div className="flex flex-col gap-2">
-        <label className="text-sm font-semibold">Logo</label>
-        {setting.logo ? (
-          <img
-            src={setting.logo}
-            alt="logo"
-            className="w-[200px] rounded-xl border border-(--ring) bg-white p-2"
-          />
-        ) : (
-          <p className="text-sm text-[color:var(--ink-muted)]">No logo found.</p>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <label className="text-sm font-semibold">Reference Images</label>
-        {setting.logo ? (
-          <img
-            src={setting.logo}
-            alt="logo"
-            className="w-[200px] rounded-xl border border-(--ring) bg-white p-2"
-          />
-        ) : (
-          <p className="text-sm text-[color:var(--ink-muted)]">No logo found.</p>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-3">
-        <label className="text-sm font-semibold">Main Prompt</label>
-        <p className="text-xs text-[color:var(--ink-muted)]">
-          Applied across all generations before specific prompts.
-        </p>
-        <textarea
-          className="min-h-[220px] rounded-2xl border border-(--ring) bg-white p-3 text-sm"
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-        />
-      </div>
-
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-col">
-            <label className="text-sm font-semibold">Purpose Prompts</label>
-            <span className="text-xs text-[color:var(--ink-muted)]">
-              Create, edit, or remove purpose-specific prompts.
-            </span>
+    <section className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-6 md:p-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>Brand Logo</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={uploadingLogo}
+              onClick={() =>
+                (document.getElementById("brand-logo-upload") as HTMLInputElement | null)?.click()
+              }
+            >
+              {uploadingLogo ? "Uploading..." : "Change logo"}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={!setting?.logo || uploadingLogo}
+              onClick={onRemoveLogo}
+            >
+              Remove logo
+            </Button>
+            <Input
+              id="brand-logo-upload"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const files = e.target.files;
+                onChangeLogo(files);
+                e.currentTarget.value = "";
+              }}
+            />
           </div>
-          <button
-            type="button"
-            onClick={addPurpose}
-            className="rounded-xl border border-(--ring) bg-white px-3 py-2 text-xs font-medium"
-          >
-            Add purpose
-          </button>
-        </div>
+          {setting?.logo ? (
+            <img
+              src={setting.logo}
+              alt="Brand logo"
+              className="h-auto w-[200px] rounded-lg border border-border bg-white p-2"
+            />
+          ) : (
+            <p className="text-sm text-muted-foreground">No logo found.</p>
+          )}
+        </CardContent>
+      </Card>
 
-        {purposeItems.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-(--ring) p-4 text-sm text-[color:var(--ink-muted)]">
-            No purpose yet. Click <strong>Add purpose</strong> to create one.
+      <Card>
+        <CardHeader>
+          <CardTitle>Sample Images</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={uploadingSamples}
+              onClick={() =>
+                (document.getElementById("sample-image-upload") as HTMLInputElement | null)?.click()
+              }
+            >
+              {uploadingSamples ? "Uploading..." : "Add image"}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={sampleImages.length === 0 || uploadingSamples}
+              onClick={onDeleteCurrentSample}
+            >
+              Delete current image
+            </Button>
+            <Input
+              id="sample-image-upload"
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                const files = e.target.files;
+                onAddSampleImages(files);
+                e.currentTarget.value = "";
+              }}
+            />
           </div>
-        ) : (
-          <div className="grid gap-4">
-            {purposeItems.map((item, index) => (
-              <div
-                key={item.id}
-                className="rounded-2xl border border-(--ring) bg-[color:var(--surface-2)] p-4 flex flex-col gap-3"
+          {sampleImages.length > 0 ? (
+            <div className="mx-auto w-full max-w-xl px-10">
+              <Carousel
+                className="w-full"
+                setApi={setSampleApi}
+                opts={{
+                  align: "start",
+                  loop: sampleImages.length > 1,
+                }}
               >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[color:var(--ink-muted)]">
-                    Purpose {index + 1}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => removePurpose(item.id)}
-                    className="rounded-xl border border-(--ring) bg-white px-3 py-1.5 text-xs"
-                  >
-                    Delete
-                  </button>
-                </div>
+                <CarouselContent>
+                  {sampleImages.map((item) => (
+                    <CarouselItem key={item.id} className="basis-1/3"> 
+                      <div className="overflow-hidden rounded-xl border border-border bg-white">
+                        <img
+                          src={item.url}
+                          alt={item.label}
+                          className="h-[260px] w-full object-contain bg-white"
+                        />
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="-left-2" />
+                <CarouselNext className="-right-2" />
+              </Carousel>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No sample images found.</p>
+          )}
+        </CardContent>
+      </Card>
 
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs font-medium text-[color:var(--ink-muted)]">
-                    Purpose name
-                  </label>
-                  <input
-                    value={item.name}
-                    onChange={(e) => updatePurposeName(item.id, e.target.value)}
-                    placeholder="Example: ads creative"
-                    className="rounded-xl border border-(--ring) bg-white px-3 py-2 text-sm"
-                  />
-                </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Branding Guidance</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Label htmlFor="main-prompt" className="mb-2 block">
+            Prompt
+          </Label>
+          <Textarea
+            id="main-prompt"
+            className="min-h-[220px]"
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+          />
+        </CardContent>
+      </Card>
 
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs font-medium text-[color:var(--ink-muted)]">
-                    Prompt text
-                  </label>
-                  <textarea
-                    className="min-h-[150px] rounded-2xl border border-(--ring) bg-white p-3 text-sm"
-                    value={item.prompt}
-                    onChange={(e) => updatePurposePrompt(item.id, e.target.value)}
-                    placeholder="Purpose prompt..."
-                  />
-                </div>
-              </div>
-            ))}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between gap-3">
+          <div className="space-y-1">
+            <CardTitle>Purpose</CardTitle>
           </div>
-        )}
-      </div>
+          <Button type="button" variant="outline" onClick={addPurpose}>
+            Add purpose
+          </Button>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          {purposeItems.length === 0 ? (
+            <Alert>
+              <AlertTitle>No purpose yet</AlertTitle>
+              <AlertDescription>Click Add purpose to create one.</AlertDescription>
+            </Alert>
+          ) : (
+            purposeItems.map((item, index) => {
+              const isOpen = openPurposeId === item.id;
+              const displayName = item.name.trim() || `Purpose ${index + 1}`;
 
+              return (
+                <Collapsible
+                  key={item.id}
+                  open={isOpen}
+                  onOpenChange={(open) => setOpenPurposeId(open ? item.id : "")}
+                >
+                  <Card className="bg-muted/40">
+                    <CardHeader className="flex flex-row items-center justify-between gap-3">
+                      <CollapsibleTrigger className="flex flex-1 items-center justify-between rounded-md px-2 py-1 text-left hover:bg-muted">
+                        <span className="text-sm font-medium">{displayName}</span>
+                        <ChevronDownIcon
+                          className={`size-4 text-muted-foreground transition-transform ${
+                            isOpen ? "rotate-180" : ""
+                          }`}
+                        />
+                      </CollapsibleTrigger>
+                      <Button type="button" variant="ghost" size="sm" onClick={() => removePurpose(item.id)}>
+                        Delete
+                      </Button>
+                    </CardHeader>
+                    <CollapsibleContent>
+                      <CardContent className="grid gap-3 pt-0">
+                        <div className="grid gap-2">
+                          <Label htmlFor={`purpose-name-${item.id}`}>Purpose name</Label>
+                          <Input
+                            id={`purpose-name-${item.id}`}
+                            value={item.name}
+                            onChange={(e) => updatePurposeName(item.id, e.target.value)}
+                            placeholder="Example: ads creative"
+                          />
+                        </div>
 
+                        <div className="grid gap-2">
+                          <Label htmlFor={`purpose-prompt-${item.id}`}>Prompt text</Label>
+                          <Textarea
+                            id={`purpose-prompt-${item.id}`}
+                            className="min-h-[150px]"
+                            value={item.prompt}
+                            onChange={(e) => updatePurposePrompt(item.id, e.target.value)}
+                            placeholder="Purpose prompt..."
+                          />
+                        </div>
+                      </CardContent>
+                    </CollapsibleContent>
+                  </Card>
+                </Collapsible>
+              );
+            })
+          )}
+        </CardContent>
+      </Card>
 
       <div className="flex flex-wrap justify-end gap-2">
-        <button
-          type="button"
-          title="Coming soon"
-          disabled
-          className="rounded-xl border border-(--ring) bg-white px-5 py-2 text-sm font-medium text-[color:var(--ink-muted)] disabled:opacity-80 disabled:cursor-not-allowed"
-        >
+        <Button type="button" variant="outline" disabled title="Coming soon">
           Test Main Prompt
-        </button>
-        <button
-          type="button"
-          onClick={save}
-          className="rounded-xl bg-black px-5 py-2 text-sm font-semibold text-white"
-        >
-          Save
-        </button>
+        </Button>
+        <Button type="button" onClick={save} disabled={saving}>
+          {saving ? "Saving..." : "Save"}
+        </Button>
       </div>
     </section>
   );
 }
-
