@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import LogoutButton from "./logout-button";
 
 const tabs = [
   { label: "Generation", href: "/generation" },
@@ -36,11 +37,9 @@ export default function TopNav() {
         })}
       </div>
 
-      {/* <div className="ml-auto flex items-center gap-3 text-xs text-[color:var(--ink-muted)]">
-        <button className="rounded-full border border-(--ring) px-3 py-1 text-xs font-semibold">
-          Login
-        </button>
-      </div> */}
+      <div className="ml-auto flex items-center gap-3 text-xs text-[color:var(--ink-muted)]">
+        <LogoutButton />
+      </div>
     </nav>
   );
 }
