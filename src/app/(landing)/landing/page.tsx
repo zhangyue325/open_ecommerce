@@ -1,30 +1,31 @@
 import Link from "next/link";
+import AnimatedHeroHeadline from "./animated-hero-headline";
+import SectionNavLink from "./section-nav-link";
 
 const navItems = [
-  { label: "Product", href: "/" },
-  { label: "Use Cases", href: "/" },
-  { label: "Pricing", href: "/" },
+  { label: "Features", targetId: "features" },
+  { label: "Demo Store", targetId: "demo-store" },
 ];
 
 const demoAccounts = [
   {
     brand: "Adidas",
-    description:
-      "Explore a sportswear-focused demo workspace with ready-made ad templates and product assets.",
+    description: "",
+    logo: "https://anoreatdtemjsoyrjlnk.supabase.co/storage/v1/object/public/logo/pazzion.png",
     image: "https://picsum.photos/seed/demo-adidas/900/560",
     href: "https://app.yellowpixel.io/login?demo=adidas",
   },
   {
     brand: "COS",
-    description:
-      "Preview a minimalist fashion demo setup with curated visuals and campaign-ready copy examples.",
+    description: "",
+    logo: "https://anoreatdtemjsoyrjlnk.supabase.co/storage/v1/object/public/logo/pazzion.png",
     image: "https://picsum.photos/seed/demo-cos/900/560",
     href: "https://app.yellowpixel.io/login?demo=cos",
   },
   {
     brand: "Zara",
-    description:
-      "Test a fast-fashion demo environment with trend-focused creatives and multi-format ad variants.",
+    description: "",
+    logo: "https://anoreatdtemjsoyrjlnk.supabase.co/storage/v1/object/public/logo/pazzion.png",
     image: "https://picsum.photos/seed/demo-zara/900/560",
     href: "https://app.yellowpixel.io/login?demo=zara",
   },
@@ -45,13 +46,13 @@ export default function LandingPage() {
 
             <nav className="hidden items-center gap-6 md:flex">
               {navItems.map((item) => (
-                <Link
+                <SectionNavLink
                   key={item.label}
-                  href={item.href}
+                  targetId={item.targetId}
                   className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   {item.label}
-                </Link>
+                </SectionNavLink>
               ))}
             </nav>
 
@@ -75,13 +76,10 @@ export default function LandingPage() {
                 Built for growth marketers
               </p>
 
-              <h1 className="text-balance text-4xl font-semibold leading-tight tracking-[-0.03em] md:text-6xl">
-                #1 most used AI tool for advertising
-              </h1>
+              <AnimatedHeroHeadline />
 
               <p className="max-w-3xl text-base leading-relaxed text-muted-foreground md:text-lg">
-                Generate ad banners, texts, photoshoots, and videos that outperform those of your
-                competitors.
+                The easiest way to scale visual content using AI without losing brand integrity.
               </p>
 
               <div className="flex flex-wrap gap-3 pt-1">
@@ -102,7 +100,10 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="grid items-center gap-6 rounded-2xl border border-border/80 bg-card/90 p-7 shadow-sm md:grid-cols-2 md:gap-10 md:p-12">
+        <section
+          id="features"
+          className="scroll-mt-28 grid items-center gap-6 rounded-2xl border border-border/80 bg-card/90 p-7 shadow-sm md:grid-cols-2 md:gap-10 md:p-12"
+        >
           <div className="space-y-4">
             <h2 className="text-3xl font-semibold leading-tight tracking-[-0.02em] md:text-4xl">
               Generate High-Performing Ad Creatives
@@ -154,7 +155,10 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-border/80 bg-card/90 p-7 shadow-sm md:p-12">
+        <section
+          id="demo-store"
+          className="scroll-mt-28 rounded-2xl border border-border/80 bg-card/90 p-7 shadow-sm md:p-12"
+        >
           <div className="mb-6 space-y-2">
             <h2 className="text-3xl font-semibold leading-tight tracking-[-0.02em] md:text-4xl">
               Demo Accounts
@@ -176,7 +180,16 @@ export default function LandingPage() {
                 </div>
 
                 <div className="space-y-4 p-5">
-                  <h3 className="text-2xl font-semibold tracking-[-0.02em]">{account.brand}</h3>
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 overflow-hidden rounded-md border border-border bg-white">
+                      <img
+                        src={account.logo}
+                        alt={`${account.brand} logo`}
+                        className="h-full w-full object-contain"
+                      />
+                    </div>
+                    <h3 className="text-2xl font-semibold tracking-[-0.02em]">{account.brand}</h3>
+                  </div>
                   <p className="text-sm leading-relaxed text-muted-foreground md:text-base">
                     {account.description}
                   </p>
@@ -223,3 +236,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
+
