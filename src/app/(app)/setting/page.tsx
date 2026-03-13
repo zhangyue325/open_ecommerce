@@ -132,6 +132,33 @@ export default function SettingPage() {
 
   return (
     <section className="surface-card p-6 md:p-8 flex flex-col gap-8">
+
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-semibold">Logo</label>
+        {setting.logo ? (
+          <img
+            src={setting.logo}
+            alt="logo"
+            className="w-[200px] rounded-xl border border-(--ring) bg-white p-2"
+          />
+        ) : (
+          <p className="text-sm text-[color:var(--ink-muted)]">No logo found.</p>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-semibold">Reference Images</label>
+        {setting.logo ? (
+          <img
+            src={setting.logo}
+            alt="logo"
+            className="w-[200px] rounded-xl border border-(--ring) bg-white p-2"
+          />
+        ) : (
+          <p className="text-sm text-[color:var(--ink-muted)]">No logo found.</p>
+        )}
+      </div>
+
       <div className="flex flex-col gap-3">
         <label className="text-sm font-semibold">Main Prompt</label>
         <p className="text-xs text-[color:var(--ink-muted)]">
@@ -214,18 +241,7 @@ export default function SettingPage() {
         )}
       </div>
 
-      <div className="flex flex-col gap-2">
-        <label className="text-sm font-semibold">Logo</label>
-        {setting.logo ? (
-          <img
-            src={setting.logo}
-            alt="logo"
-            className="w-[200px] rounded-xl border border-(--ring) bg-white p-2"
-          />
-        ) : (
-          <p className="text-sm text-[color:var(--ink-muted)]">No logo found.</p>
-        )}
-      </div>
+
 
       <div className="flex flex-wrap justify-end gap-2">
         <button
