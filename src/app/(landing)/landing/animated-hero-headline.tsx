@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const rotatingTerms = ["brand guidance", "brand logo", "brand tone"];
+const rotatingTerms = ["brand guidance", "brand logo", "brand tone", "brand identity"];
 const rotatingWidthCh = Math.max(...rotatingTerms.map((term) => term.length)) + 1;
 
 const TYPING_MS = 75;
@@ -53,7 +53,7 @@ export default function AnimatedHeroHeadline() {
           className="inline-flex items-center whitespace-nowrap align-middle"
           style={{ width: `${rotatingWidthCh}ch` }}
         >
-          <span className="text-yellow-500">{displayText}</span>
+          <span className="text-yellow-500">{displayText} </span>
           <span
             aria-hidden
             className="ml-1 inline-block h-[0.9em] w-px bg-yellow-500 animate-pulse"

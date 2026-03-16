@@ -1,11 +1,7 @@
 import Link from "next/link";
 import AnimatedHeroHeadline from "./animated-hero-headline";
-import SectionNavLink from "./section-nav-link";
-
-const navItems = [
-  { label: "Features", targetId: "features" },
-  { label: "Demo Store", targetId: "demo-store" },
-];
+import LandingFooter from "./landing-footer";
+import LandingHeader from "./landing-header";
 
 const demoAccounts = [
   {
@@ -34,46 +30,14 @@ const demoAccounts = [
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_0%_0%,#ffe2b8_0%,transparent_28%),radial-gradient(circle_at_100%_0%,#c2f1e4_0%,transparent_28%),var(--background)]">
-      <header className="fixed inset-x-0 top-0 z-50">
-        <div className="mx-auto w-full max-w-6xl px-5 pt-4 md:px-8">
-          <div className="flex h-16 items-center justify-between rounded-2xl border border-border/80 bg-card/90 px-4 shadow-sm backdrop-blur-xl md:px-6">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="size-8 rounded-md bg-black text-center text-sm leading-8 font-semibold text-white">
-                Y
-              </div>
-              <span className="text-sm font-semibold tracking-wide">Yellow Pixel</span>
-            </Link>
-
-            <nav className="hidden items-center gap-6 md:flex">
-              {navItems.map((item) => (
-                <SectionNavLink
-                  key={item.label}
-                  targetId={item.targetId}
-                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  {item.label}
-                </SectionNavLink>
-              ))}
-            </nav>
-
-            <Link
-              href="https://app.yellowpixel.io/login"
-              className="inline-flex h-8 items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium"
-            >
-              Login
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      <div aria-hidden className="h-20" />
+      <LandingHeader />
 
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-5 pt-3 pb-10 md:px-8 md:pt-5 md:pb-12">
-        <section className="flex min-h-[calc(100vh-6rem)] items-start">
+        <section className="flex items-start">
           <div className="w-full rounded-2xl border border-border/80 bg-card/90 p-7 shadow-sm md:p-12">
             <div className="mx-auto flex max-w-4xl flex-col items-start gap-6 text-left">
               <p className="rounded-full border border-border bg-background/70 px-3 py-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                Built for growth marketers
+                Built for e-commerce brands
               </p>
 
               <AnimatedHeroHeadline />
@@ -87,7 +51,7 @@ export default function LandingPage() {
                   href="https://app.yellowpixel.io/login"
                   className="inline-flex h-9 items-center justify-center rounded-lg border border-border bg-background px-5 text-sm font-medium hover:bg-muted"
                 >
-                  Start with Google
+                  Start Free with Google
                 </Link>
                 <Link
                   href="https://app.yellowpixel.io/login"
@@ -106,7 +70,7 @@ export default function LandingPage() {
         >
           <div className="space-y-4">
             <h2 className="text-3xl font-semibold leading-tight tracking-[-0.02em] md:text-4xl">
-              Generate High-Performing Ad Creatives
+              Control Brand Guidance for AI-Generated Creatives
             </h2>
             <p className="text-base leading-relaxed text-muted-foreground md:text-lg">
               Turn one idea into multiple ad-ready concepts with strong messaging, fast iteration,
@@ -122,7 +86,7 @@ export default function LandingPage() {
 
           <div className="overflow-hidden rounded-xl border border-border bg-muted/40">
             <img
-              src="https://picsum.photos/seed/high-performing-ad/1200/760"
+              src="/feature1.png"
               alt="Sample ad creative preview"
               className="h-full w-full object-cover"
             />
@@ -132,7 +96,7 @@ export default function LandingPage() {
         <section className="grid items-center gap-6 rounded-2xl border border-border/80 bg-card/90 p-7 shadow-sm md:grid-cols-2 md:gap-10 md:p-12">
           <div className="overflow-hidden rounded-xl border border-border bg-muted/40">
             <img
-              src="https://picsum.photos/seed/product-photography/1200/760"
+              src="/feature2.png"
               alt="Sample AI product photography preview"
               className="h-full w-full object-cover"
             />
@@ -140,7 +104,7 @@ export default function LandingPage() {
 
           <div className="space-y-4">
             <h2 className="text-3xl font-semibold leading-tight tracking-[-0.02em] md:text-4xl">
-              AI Product Photography Delivered in Seconds
+              Manage your prompts and AI templates in one place
             </h2>
             <p className="text-base leading-relaxed text-muted-foreground md:text-lg">
               Upload a product and instantly generate studio-quality shots with polished lighting,
@@ -233,8 +197,8 @@ export default function LandingPage() {
           </div>
         </section>
       </main>
+
+      <LandingFooter />
     </div>
   );
 }
-
-
