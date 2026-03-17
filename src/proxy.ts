@@ -13,7 +13,15 @@ const LANDING_HOSTS = new Set([
   "www.yellowpixel.io",
 ]);
 
-const APP_ROUTE_PREFIXES = ["/login", "/auth/callback", "/template", "/generation", "/setting", "/test"];
+const APP_ROUTE_PREFIXES = [
+  "/login",
+  "/auth/callback",
+  "/template",
+  "/generation",
+  "/setting",
+  "/test",
+  "/scan",
+];
 
 export async function proxy(req: NextRequest) {
   const host = req.headers.get("host") || "";
@@ -62,13 +70,22 @@ async function handleAppHost(req: NextRequest, url: URL) {
     const loginUrl = req.nextUrl.clone();
     loginUrl.pathname = "/login";
     loginUrl.search = "";
+    loginUrl.searchParams.set("next", `${url.pathname}${url.search}`);
     return NextResponse.redirect(loginUrl);
   }
 
   if (user && isLoginPage) {
+    const nextPath = getSafeNextPath(url.searchParams.get("next"));
     const appUrl = req.nextUrl.clone();
-    appUrl.pathname = "/template";
-    appUrl.search = "";
+
+    if (nextPath) {
+      appUrl.pathname = nextPath.pathname;
+      appUrl.search = nextPath.search;
+    } else {
+      appUrl.pathname = "/template";
+      appUrl.search = "";
+    }
+
     return NextResponse.redirect(appUrl);
   }
 
@@ -86,6 +103,22 @@ function getAppHostname(hostname: string) {
     return "app.yellowpixel.io";
   }
   return null;
+}
+
+function getSafeNextPath(nextPath: string | null) {
+  if (!nextPath || !nextPath.startsWith("/")) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(nextPath, "http://localhost");
+    if (parsed.pathname === "/login") {
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
 }
 
 export const config = {

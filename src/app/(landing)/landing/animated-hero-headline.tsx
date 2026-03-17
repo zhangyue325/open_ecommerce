@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 
 const rotatingTerms = ["brand guidance", "brand logo", "brand tone", "brand identity"];
-const rotatingWidthCh = Math.max(...rotatingTerms.map((term) => term.length)) + 1;
+const longestTerm = rotatingTerms.reduce((longest, term) =>
+  term.length > longest.length ? term : longest
+);
 
 const TYPING_MS = 75;
 const DELETING_MS = 45;
@@ -46,18 +48,20 @@ export default function AnimatedHeroHeadline() {
 
   return (
     <h1 className="text-4xl font-semibold leading-tight tracking-[-0.03em] md:text-6xl">
-      Generate AI creatives that align with{" "}
+      Generate ✨AI creatives that align with{" "}
       <span className="whitespace-nowrap">
         your{" "}
-        <span
-          className="inline-flex items-center whitespace-nowrap align-middle"
-          style={{ width: `${rotatingWidthCh}ch` }}
-        >
-          <span className="text-yellow-500">{displayText} </span>
-          <span
-            aria-hidden
-            className="ml-1 inline-block h-[0.9em] w-px bg-yellow-500 animate-pulse"
-          />
+        <span className="relative inline-grid whitespace-nowrap align-middle">
+          <span aria-hidden className="invisible col-start-1 row-start-1 text-yellow-500 pr-2">
+            {longestTerm}
+          </span>
+          <span className="col-start-1 row-start-1 inline-flex items-center">
+            <span className="text-yellow-500">{displayText}</span>
+            <span
+              aria-hidden
+              className="ml-1 inline-block h-[0.9em] w-px bg-yellow-500 animate-pulse"
+            />
+          </span>
         </span>
       </span>
     </h1>

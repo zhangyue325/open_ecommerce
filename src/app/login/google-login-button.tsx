@@ -19,7 +19,8 @@ export default function GoogleLoginButton({
   const onLogin = async () => {
     setLoading(true);
     const supabase = createClient();
-    const absoluteNext = `${window.location.origin}${nextPath}`;
+    const safeNextPath = nextPath.startsWith("/") ? nextPath : "/template";
+    const absoluteNext = `${window.location.origin}${safeNextPath}`;
     const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(
       absoluteNext
     )}`;

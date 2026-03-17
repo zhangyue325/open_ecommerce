@@ -2,6 +2,7 @@ import Link from "next/link";
 import AnimatedHeroHeadline from "./animated-hero-headline";
 import LandingFooter from "./landing-footer";
 import LandingHeader from "./landing-header";
+import WebsiteScanWizard from "./website-scan-wizard";
 
 const demoAccounts = [
   {
@@ -61,6 +62,15 @@ export default function LandingPage() {
                 </Link>
               </div>
             </div>
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-border/80 bg-card/90 p-7 shadow-sm md:p-12">
+          <div className="space-y-6">
+            <h2 className="text-3xl font-semibold leading-tight tracking-[-0.02em] md:text-4xl">
+              Scan Your Website to Generate
+            </h2>
+            <WebsiteScanWizard />
           </div>
         </section>
 
@@ -169,33 +179,6 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-border/80 bg-card/90 p-7 shadow-sm md:p-12">
-          <div className="space-y-6">
-            <h2 className="text-3xl font-semibold leading-tight tracking-[-0.02em] md:text-4xl">
-              Scan Your Website to Generate
-            </h2>
-
-            <form
-              action="/login"
-              method="get"
-              className="flex flex-col gap-3 md:flex-row"
-            >
-              <input
-                type="url"
-                name="website"
-                placeholder="www.yourdomain.com"
-                className="h-11 w-full rounded-lg border border-border bg-background px-4 text-sm outline-none ring-0 placeholder:text-muted-foreground/70 focus:border-foreground/40"
-                required
-              />
-              <button
-                type="submit"
-                className="inline-flex h-11 items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-              >
-                generate your creatives now
-              </button>
-            </form>
-          </div>
-        </section>
       </main>
 
       <LandingFooter />
