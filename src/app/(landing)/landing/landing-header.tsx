@@ -28,7 +28,7 @@ export default function LandingHeader() {
             </nav>
 
             <Link
-              href="https://app.yellowpixel.io/login"
+              href="/login"
               className="inline-flex h-8 items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium"
             >
               Login

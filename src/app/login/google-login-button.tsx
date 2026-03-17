@@ -19,8 +19,9 @@ export default function GoogleLoginButton({
   const onLogin = async () => {
     setLoading(true);
     const supabase = createClient();
+    const absoluteNext = `${window.location.origin}${nextPath}`;
     const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(
-      nextPath
+      absoluteNext
     )}`;
 
     const { error } = await supabase.auth.signInWithOAuth({
@@ -40,4 +41,3 @@ export default function GoogleLoginButton({
     </Button>
   );
 }
-

@@ -9,21 +9,21 @@ const demoAccounts = [
     description: "",
     logo: "https://anoreatdtemjsoyrjlnk.supabase.co/storage/v1/object/public/logo/pazzion.png",
     image: "https://picsum.photos/seed/demo-adidas/900/560",
-    href: "https://app.yellowpixel.io/login?demo=adidas",
+    href: "/login?demo=adidas",
   },
   {
     brand: "COS",
     description: "",
     logo: "https://anoreatdtemjsoyrjlnk.supabase.co/storage/v1/object/public/logo/pazzion.png",
     image: "https://picsum.photos/seed/demo-cos/900/560",
-    href: "https://app.yellowpixel.io/login?demo=cos",
+    href: "/login?demo=cos",
   },
   {
     brand: "Zara",
     description: "",
     logo: "https://anoreatdtemjsoyrjlnk.supabase.co/storage/v1/object/public/logo/pazzion.png",
     image: "https://picsum.photos/seed/demo-zara/900/560",
-    href: "https://app.yellowpixel.io/login?demo=zara",
+    href: "/login?demo=zara",
   },
 ];
 
@@ -48,13 +48,13 @@ export default function LandingPage() {
 
               <div className="flex flex-wrap gap-3 pt-1">
                 <Link
-                  href="https://app.yellowpixel.io/login"
+                  href="/login"
                   className="inline-flex h-9 items-center justify-center rounded-lg border border-border bg-background px-5 text-sm font-medium hover:bg-muted"
                 >
                   Start Free with Google
                 </Link>
                 <Link
-                  href="https://app.yellowpixel.io/login"
+                  href="/login"
                   className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
                 >
                   Try for free
@@ -77,7 +77,7 @@ export default function LandingPage() {
               and visuals optimized for campaign performance.
             </p>
             <Link
-              href="https://app.yellowpixel.io/login"
+              href="/login"
               className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
             >
               Try for free
@@ -111,7 +111,7 @@ export default function LandingPage() {
               clean composition, and multiple styles for every campaign channel.
             </p>
             <Link
-              href="https://app.yellowpixel.io/login"
+              href="/login"
               className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
             >
               Try for free
@@ -176,14 +176,14 @@ export default function LandingPage() {
             </h2>
 
             <form
-              action="https://app.yellowpixel.io/login"
+              action="/login"
               method="get"
               className="flex flex-col gap-3 md:flex-row"
             >
               <input
                 type="url"
                 name="website"
-                placeholder="https://app.yellowpixel.io/login"
+                placeholder="www.yourdomain.com"
                 className="h-11 w-full rounded-lg border border-border bg-background px-4 text-sm outline-none ring-0 placeholder:text-muted-foreground/70 focus:border-foreground/40"
                 required
               />

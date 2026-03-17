@@ -13,6 +13,8 @@ const LANDING_HOSTS = new Set([
   "www.yellowpixel.io",
 ]);
 
+const APP_ROUTE_PREFIXES = ["/login", "/auth/callback", "/template", "/generation", "/setting", "/test"];
+
 export async function proxy(req: NextRequest) {
   const host = req.headers.get("host") || "";
   const hostname = host.split(":")[0];
@@ -25,6 +27,21 @@ export async function proxy(req: NextRequest) {
 
   // apex/www hosts are rewritten to /(landing)/landing/*
   if (LANDING_HOSTS.has(hostname)) {
+    if (isAppRoute(url.pathname)) {
+      // Local dev keeps app routes on localhost directly with the same auth guard.
+      if (hostname === "localhost" || hostname === "www.localhost") {
+        return handleAppHost(req, url);
+      }
+
+      // Production landing host forwards app routes to app subdomain.
+      const appHostname = getAppHostname(hostname);
+      if (appHostname) {
+        const appUrl = req.nextUrl.clone();
+        appUrl.hostname = appHostname;
+        return NextResponse.redirect(appUrl);
+      }
+    }
+
     if (url.pathname === "/landing" || url.pathname.startsWith("/landing/")) {
       return NextResponse.next();
     }
@@ -56,6 +73,19 @@ async function handleAppHost(req: NextRequest, url: URL) {
   }
 
   return response;
+}
+
+function isAppRoute(pathname: string) {
+  return APP_ROUTE_PREFIXES.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`)
+  );
+}
+
+function getAppHostname(hostname: string) {
+  if (hostname === "yellowpixel.io" || hostname === "www.yellowpixel.io") {
+    return "app.yellowpixel.io";
+  }
+  return null;
 }
 
 export const config = {

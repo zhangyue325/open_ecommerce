@@ -60,17 +60,32 @@ export async function POST(req: Request) {
     }
 
     const supabase = await createClient();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return Response.json({ error: userError?.message ?? "Unauthorized" }, { status: 401 });
+    }
+
     const { data: setting, error: settingError } = await supabase
       .from("setting")
       .select("main_prompt,purpose_prompt,logo")
-      .eq("user_name", "Pazzion")
-      .single();
+      .eq("user_id", user.id)
+      .order("id", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
     if (settingError) {
       return Response.json(
         { error: `Failed to read setting info: ${settingError.message}` },
         { status: 500 }
       );
+    }
+
+    if (!setting) {
+      return Response.json({ error: "No setting found for current user" }, { status: 404 });
     }
 
     const purposePrompt = getPurposePrompt(setting?.purpose_prompt, purpose);

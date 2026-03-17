@@ -23,11 +23,22 @@ export async function POST(req: Request) {
 
     let mainPrompt = "";
     const supabase = await createClient();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return Response.json({ error: userError?.message ?? "Unauthorized" }, { status: 401 });
+    }
+
     const { data: setting } = await supabase
       .from("setting")
       .select("main_prompt")
-      .eq("user_name", "Pazzion")
-      .single();
+      .eq("user_id", user.id)
+      .order("id", { ascending: false })
+      .limit(1)
+      .maybeSingle();
     mainPrompt = setting?.main_prompt || "";
 
     const referencesText =

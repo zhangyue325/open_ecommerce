@@ -64,6 +64,16 @@ export default function CreateTemplateCard({
     setSaving(true);
     setMessage("");
     const supabase = createClient();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      setMessage(userError?.message ?? "Not logged in.");
+      setSaving(false);
+      return;
+    }
 
     let descriptiveImage: string | null = null;
     if (referenceFile) {
@@ -99,6 +109,7 @@ export default function CreateTemplateCard({
         model: model || null,
         ratio: ratio || null,
         author: author || null,
+        user_id: user.id,
         prompt,
         descriptive_image: descriptiveImage,
       },

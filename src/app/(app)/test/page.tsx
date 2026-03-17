@@ -1,54 +1,61 @@
-"use client";
+import { createClient } from "../../../../lib/supabase/server";
 
-import { useState } from "react";
+export default async function Page() {
+  const supabase = await createClient();
 
-export default function Page() {
-  const [prompt, setPrompt] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  async function handleGenerate() {
-    setLoading(true);
-    setError("");
-    setImageUrl("");
-
-    const res = await fetch("/api/generate_image", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ prompt }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      setError(data.error ?? "Failed");
-      setLoading(false);
-      return;
-    }
-
-    setImageUrl(`data:image/png;base64,${data.imageBase64}`);
-    setLoading(false);
+  if (!user) {
+    return <div>Not logged in</div>;
   }
 
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
   return (
-    <div style={{ padding: 40 }}>
-      <textarea
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        placeholder="Enter prompt"
-      />
+    <div className="p-6 space-y-6">
+      <h1 className="text-2xl font-semibold">User info</h1>
 
-      <br />
+      <section className="space-y-2">
+        <h2 className="text-lg font-medium">Auth user</h2>
+        <pre className="rounded border p-4 overflow-auto text-xs">
+          {JSON.stringify(user, null, 2)}
+        </pre>
+      </section>
 
-      <button onClick={handleGenerate} disabled={loading || !prompt.trim()}>
-        {loading ? "Generating..." : "Generate"}
-      </button>
+      <section className="space-y-2">
+        <h2 className="text-lg font-medium">Profile row</h2>
+        <pre className="rounded border p-4 overflow-auto text-xs">
+          {JSON.stringify(profile ?? null, null, 2)}
+        </pre>
+      </section>
 
-      {error ? <pre>{error}</pre> : null}
-      {imageUrl ? <img src={imageUrl} alt="Generated" style={{ marginTop: 16, maxWidth: "100%" }} /> : null}
+      {profileError && (
+        <section className="space-y-2">
+          <h2 className="text-lg font-medium">Profile query error</h2>
+          <pre className="rounded border p-4 overflow-auto text-xs">
+            {JSON.stringify(profileError, null, 2)}
+          </pre>
+        </section>
+      )}
+
+      <section className="space-y-2">
+        <h2 className="text-lg font-medium">Quick fields</h2>
+        <ul className="list-disc pl-5 text-sm">
+          <li>ID: {user.id}</li>
+          <li>Email: {user.email ?? "-"}</li>
+          <li>Phone: {user.phone ?? "-"}</li>
+          <li>Role: {user.role ?? "-"}</li>
+          <li>Provider: {user.app_metadata?.provider ?? "-"}</li>
+          <li>Created at: {user.created_at ?? "-"}</li>
+          <li>Last sign-in: {user.last_sign_in_at ?? "-"}</li>
+        </ul>
+      </section>
     </div>
   );
 }

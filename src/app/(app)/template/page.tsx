@@ -3,18 +3,29 @@ import TemplateList from "./templateList";
 
 export default async function TemplatePage() {
   const supabase = await createClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return <pre>{JSON.stringify({ error: userError?.message ?? "Unauthorized" }, null, 2)}</pre>;
+  }
 
   const [{ data: templates, error }, { data: settingData }] = await Promise.all([
     supabase
       .from("template")
       .select("id,template_name,purpose,prompt,descriptive_image,ratio,model,author,type")
+      .eq("user_id", user.id)
       .or("deleted.is.null,deleted.eq.false")
       .order("id"),
     supabase
       .from("setting")
       .select("purpose_prompt")
-      .eq("user_name", "Pazzion")
-      .single(),
+      .eq("user_id", user.id)
+      .order("id", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   if (error) return <pre>{JSON.stringify(error, null, 2)}</pre>;

@@ -3,11 +3,22 @@
 export async function GET() {
   try {
     const supabase = await createClient();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return Response.json({ error: userError?.message ?? "Unauthorized" }, { status: 401 });
+    }
+
     const { data, error } = await supabase
       .from("setting")
       .select("purpose_prompt")
-      .eq("user_name", "Pazzion")
-      .single();
+      .eq("user_id", user.id)
+      .order("id", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
     if (error) {
       return Response.json({ error: error.message }, { status: 500 });

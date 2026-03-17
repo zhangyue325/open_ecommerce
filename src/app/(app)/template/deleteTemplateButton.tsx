@@ -14,10 +14,22 @@ export default function DeleteTemplateButton({ templateId }: { templateId: numbe
 
     setDeleting(true);
     const supabase = createClient();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      setDeleting(false);
+      window.alert(userError?.message ?? "Not logged in.");
+      return;
+    }
+
     const { error } = await supabase
       .from("template")
       .update({ deleted: true })
-      .eq("id", templateId);
+      .eq("id", templateId)
+      .eq("user_id", user.id);
 
     setDeleting(false);
 

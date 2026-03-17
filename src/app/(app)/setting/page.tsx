@@ -28,6 +28,7 @@ type PurposePromptItem = {
 
 type SettingRecord = {
   id: number;
+  user_id?: string | null;
   logo: string | null;
   main_prompt: string | null;
   purpose_prompt: unknown;
@@ -122,18 +123,54 @@ export default function SettingPage() {
       }
 
       const { data, error } = await supabase
-        .from("setting")
-        .select("*")
-        .eq("user_name", "Pazzion")
-        .single();
+        .auth
+        .getUser();
+      const user = data.user;
 
-      if (error || !data) {
-        setConfigError(error?.message ?? "Unable to load settings.");
+      if (error || !user) {
+        setConfigError(error?.message ?? "Not logged in.");
         setLoading(false);
         return;
       }
 
-      const nextSetting = data as SettingRecord;
+      const { data: settingData, error: settingError } = await supabase
+        .from("setting")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("id", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (settingError) {
+        setConfigError(settingError.message);
+        setLoading(false);
+        return;
+      }
+
+      let nextSetting = settingData as SettingRecord | null;
+
+      if (!nextSetting) {
+        const { data: insertedSetting, error: insertError } = await supabase
+          .from("setting")
+          .insert({
+            user_id: user.id,
+            logo: null,
+            main_prompt: "",
+            purpose_prompt: {},
+            sample_image: {},
+          })
+          .select("*")
+          .single();
+
+        if (insertError || !insertedSetting) {
+          setConfigError(insertError?.message ?? "Unable to create default setting.");
+          setLoading(false);
+          return;
+        }
+
+        nextSetting = insertedSetting as SettingRecord;
+      }
+
       const loadedPurposeItems = toPurposeItems(nextSetting.purpose_prompt);
       setSetting(nextSetting);
       setPrompt(nextSetting.main_prompt || "");
