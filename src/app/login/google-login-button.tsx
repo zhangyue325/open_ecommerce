@@ -11,7 +11,7 @@ type GoogleLoginButtonProps = {
 };
 
 export default function GoogleLoginButton({
-  nextPath = "/template",
+  nextPath = "/generation",
   label = "Continue with Google",
 }: GoogleLoginButtonProps) {
   const [loading, setLoading] = useState(false);
@@ -19,7 +19,7 @@ export default function GoogleLoginButton({
   const onLogin = async () => {
     setLoading(true);
     const supabase = createClient();
-    const safeNextPath = nextPath.startsWith("/") ? nextPath : "/template";
+    const safeNextPath = nextPath.startsWith("/") ? nextPath : "/generation";
     const absoluteNext = `${window.location.origin}${safeNextPath}`;
     const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(
       absoluteNext

@@ -26,7 +26,7 @@ export async function GET(request: Request) {
 
 function resolveRedirectUrl(next: string | null, requestUrl: URL) {
   if (!next) {
-    return new URL("/template", requestUrl.origin);
+    return new URL("/generation", requestUrl.origin);
   }
 
   if (next.startsWith("/")) {
@@ -42,5 +42,5 @@ function resolveRedirectUrl(next: string | null, requestUrl: URL) {
     // Ignore invalid absolute URLs and fall back.
   }
 
-  return new URL("/template", requestUrl.origin);
+  return new URL("/generation", requestUrl.origin);
 }

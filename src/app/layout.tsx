@@ -18,7 +18,7 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Creative Lab",
+  title: "Yellow Pixel",
   description: "Generate and refine brand images and videos with AI.",
 };
 

@@ -1,4 +1,4 @@
-import { fetchWebsiteMetadata, findReachableImageUrl, normalizeWebsiteUrl } from "@/lib/website-scan";
+import { normalizeWebsiteUrl } from "@/lib/website-scan";
 
 type ScanWebsiteLogoPayload = {
   websiteUrl?: string;
@@ -12,15 +12,13 @@ export async function POST(req: Request) {
       return Response.json({ error: "Missing websiteUrl" }, { status: 400 });
     }
 
-    const metadata = await fetchWebsiteMetadata(websiteUrl);
-    const logoUrl = await findReachableImageUrl(metadata.faviconCandidates);
+    const normalized = normalizeWebsiteUrl(websiteUrl);
+    const logoUrl = `https://favicon.is/${normalized.hostname}?larger=true`;
 
     return Response.json({
-      normalizedUrl: metadata.normalizedUrl,
-      logoUrl:
-        logoUrl ||
-        new URL("/favicon.ico", normalizeWebsiteUrl(metadata.normalizedUrl)).toString(),
-      candidates: metadata.faviconCandidates,
+      normalizedUrl: normalized.toString(),
+      logoUrl,
+      provider: "favicon.is",
     });
   } catch (error) {
     console.error("scan_website_logo failed:", error);
