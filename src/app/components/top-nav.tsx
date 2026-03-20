@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import LogoutButton from "./logout-button";
 
 const tabs = [
+  { label: "Workspace", href: "/workspace" },
   { label: "Generation", href: "/generation" },
   { label: "Template", href: "/template" },
   { label: "Setting", href: "/setting" },
@@ -16,7 +17,7 @@ export default function TopNav() {
   return (
     <nav className="surface-card px-5 py-3 flex flex-wrap items-center gap-3 sticky top-0 z-50">
       <div className="flex items-center gap-3">
-        <span className="text-sm font-semibold">Yellow Pixel</span>
+        <span className="text-sm font-semibold"></span>
       </div>
 
       <div className="flex flex-wrap items-center gap-2 md:ml-6">

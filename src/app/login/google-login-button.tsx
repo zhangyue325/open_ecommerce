@@ -4,15 +4,22 @@ import { useState } from "react";
 
 import { createClient } from "../../../lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 type GoogleLoginButtonProps = {
   nextPath?: string;
   label?: string;
+  className?: string;
+  variant?: "default" | "outline" | "secondary" | "ghost" | "destructive" | "link";
+  size?: "default" | "xs" | "sm" | "lg" | "icon" | "icon-xs" | "icon-sm" | "icon-lg";
 };
 
 export default function GoogleLoginButton({
   nextPath = "/generation",
   label = "Continue with Google",
+  className,
+  variant = "default",
+  size = "default",
 }: GoogleLoginButtonProps) {
   const [loading, setLoading] = useState(false);
 
@@ -37,7 +44,14 @@ export default function GoogleLoginButton({
   };
 
   return (
-    <Button type="button" onClick={onLogin} disabled={loading}>
+    <Button
+      type="button"
+      onClick={onLogin}
+      disabled={loading}
+      variant={variant}
+      size={size}
+      className={cn(className)}
+    >
       {loading ? "Redirecting..." : label}
     </Button>
   );

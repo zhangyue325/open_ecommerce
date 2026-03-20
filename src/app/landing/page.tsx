@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import AnimatedHeroHeadline from "./animated-hero-headline";
 import LandingFooter from "./landing-footer";
-import LinkButton from "./link-button";
+import LoginModalTrigger from "../login/login-modal-trigger";
 import LandingNaviBar from "./landing-navi-bar";
 import WebsiteScanWizard from "./website-scan-wizard";
 
@@ -59,12 +59,19 @@ export default function LandingPage() {
             </p>
             <AnimatedHeroHeadline />
             <div className="flex flex-wrap justify-center gap-3 pt-1">
-              <LinkButton href="/login" variant="outline" size="lg" className="px-5">
-                Start Free with Google
-              </LinkButton>
-              <LinkButton href="/login" size="lg" className="px-5">
-                Try with My Product
-              </LinkButton>
+              <LoginModalTrigger
+                label="Start Free with Google"
+                nextPath="/template"
+                variant="outline"
+                size="lg"
+                className="px-5"
+              />
+              <LoginModalTrigger
+                label="Try with My Product"
+                nextPath="/generation"
+                size="lg"
+                className="px-5"
+              />
             </div>
           </div>
         </div>
@@ -83,9 +90,7 @@ export default function LandingPage() {
                     <p className="text-base leading-relaxed text-muted-foreground md:text-lg">
                       {feature.description}
                     </p>
-                    <LinkButton href="/login" size="lg" className="px-5">
-                      Try for free
-                    </LinkButton>
+                    <LoginModalTrigger label="Try for free" nextPath="/template" size="lg" className="px-5" />
                   </div>
 
                   <div
@@ -102,16 +107,6 @@ export default function LandingPage() {
           </section>
         ))}
 
-        <section>
-          <Card className="rounded-2xl border border-border/80 bg-card/90 shadow-sm">
-            <CardContent className="space-y-6 p-7 md:p-12">
-              <h2 className="text-3xl font-semibold leading-tight tracking-[-0.02em] md:text-4xl">
-                Scan Your Website to Generate
-              </h2>
-              <WebsiteScanWizard />
-            </CardContent>
-          </Card>
-        </section>
       </main>
 
       <LandingFooter />

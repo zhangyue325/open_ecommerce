@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState, type FormEvent, type ReactNode } from "react";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import LoginModalTrigger from "../login/login-modal-trigger";
 import { cn } from "@/lib/utils";
 
 type FlowStep = "input" | "confirmPrompt" | "confirmLogo" | "login";
@@ -31,9 +31,9 @@ export default function WebsiteScanWizard() {
   const [isLoadingLogo, setIsLoadingLogo] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const loginHref = useMemo(() => {
+  const loginNextPath = useMemo(() => {
     if (!normalizedUrl || !mainPrompt.trim()) {
-      return "/login";
+      return "/template";
     }
 
     const token = encodeScanToken({
@@ -43,8 +43,7 @@ export default function WebsiteScanWizard() {
       createdAt: Date.now(),
     });
 
-    const nextPath = `/scan/complete?token=${token}`;
-    return `/login?next=${encodeURIComponent(nextPath)}`;
+    return `/scan/complete?token=${token}`;
   }, [logoUrl, mainPrompt, normalizedUrl]);
 
   const onGeneratePrompt = async (event: FormEvent<HTMLFormElement>) => {
@@ -198,9 +197,12 @@ export default function WebsiteScanWizard() {
             <p className="text-sm text-muted-foreground">
               Login with Google to store this website prompt and logo in your account settings.
             </p>
-            <Link href={loginHref} className={cn(buttonVariants({ size: "lg" }), "w-fit px-5")}>
-              Continue with Google to save
-            </Link>
+            <LoginModalTrigger
+              label="Continue with Google to save"
+              nextPath={loginNextPath}
+              size="lg"
+              className="w-fit px-5"
+            />
           </CardContent>
         </Card>
       ) : null}

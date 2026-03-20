@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { landingNavItems } from "./landing-nav-items";
 import SectionNavLink from "./section-nav-link";
 
@@ -13,23 +12,6 @@ export default function LandingFooter() {
             <span className="text-sm font-semibold tracking-wide">Yellow Pixel</span>
           </div>
           <p className="text-xs text-muted-foreground">(c) {currentYear} Yellow Pixel. All rights reserved.</p>
-        </div>
-
-        <div className="flex flex-col gap-4 md:items-end">
-          <nav className="flex flex-wrap gap-x-5 gap-y-2">
-            {landingNavItems.map((item) => (
-              <SectionNavLink
-                key={item.label}
-                targetId={item.targetId}
-                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-              >
-                {item.label}
-              </SectionNavLink>
-            ))}
-          </nav>
-          <Link href="/login" className="text-xs text-muted-foreground underline-offset-4 hover:underline">
-            Go to login
-          </Link>
         </div>
       </div>
     </footer>

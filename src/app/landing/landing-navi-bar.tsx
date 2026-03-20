@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
+import LoginModalTrigger from "../login/login-modal-trigger";
 import { landingNavItems } from "./landing-nav-items";
-import LinkButton from "./link-button";
 import SectionNavLink from "./section-nav-link";
 
 export default function LandingNaviBar() {
@@ -30,9 +30,7 @@ export default function LandingNaviBar() {
                 ))}
               </nav>
 
-              <LinkButton href="/login" variant="outline" size="sm" className="px-3">
-                Login
-              </LinkButton>
+              <LoginModalTrigger label="Login" variant="outline" size="sm" className="px-3" />
             </div>
           </Card>
         </div>

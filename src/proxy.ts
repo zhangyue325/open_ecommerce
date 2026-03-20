@@ -4,6 +4,7 @@ import { updateSession } from "../lib/supabase/proxy";
 const APP_ROUTE_PREFIXES = [
   "/login",
   "/auth/callback",
+  "/workspace",
   "/template",
   "/generation",
   "/setting",
