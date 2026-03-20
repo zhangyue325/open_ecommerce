@@ -4,10 +4,8 @@ import { createClient } from "../../../../lib/supabase/server";
 const ALLOWED_ABSOLUTE_REDIRECT_HOSTS = new Set([
   "localhost",
   "www.localhost",
-  "app.localhost",
   "yellowpixel.io",
   "www.yellowpixel.io",
-  "app.yellowpixel.io",
 ]);
 
 export async function GET(request: Request) {
