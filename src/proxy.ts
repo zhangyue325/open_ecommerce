@@ -12,6 +12,8 @@ const APP_ROUTE_PREFIXES = [
   "/scan",
 ];
 
+const PUBLIC_PAGE_PREFIXES = ["/landing", "/solution"];
+
 export async function proxy(req: NextRequest) {
   const url = req.nextUrl.clone();
 
@@ -20,7 +22,7 @@ export async function proxy(req: NextRequest) {
     return handleAppHost(req, url);
   }
 
-  if (url.pathname === "/landing" || url.pathname.startsWith("/landing/")) {
+  if (isPublicPage(url.pathname)) {
     return NextResponse.next();
   }
 
@@ -61,6 +63,12 @@ async function handleAppHost(req: NextRequest, url: URL) {
 
 function isAppRoute(pathname: string) {
   return APP_ROUTE_PREFIXES.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`)
+  );
+}
+
+function isPublicPage(pathname: string) {
+  return PUBLIC_PAGE_PREFIXES.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`)
   );
 }

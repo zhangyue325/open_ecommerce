@@ -6,7 +6,6 @@ import LogoutButton from "./logout-button";
 
 const tabs = [
   { label: "Workspace", href: "/workspace" },
-  { label: "Generation", href: "/generation" },
   { label: "Template", href: "/template" },
   { label: "Setting", href: "/setting" },
 ];
