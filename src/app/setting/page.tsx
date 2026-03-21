@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect, useMemo, type FormEvent, type ReactNode } from "react";
 
 import { createClient } from "../../../lib/supabase/client";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -18,6 +18,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import { ChevronDownIcon } from "lucide-react";
 
 type PurposePromptItem = {
@@ -39,6 +40,19 @@ type SampleImageItem = {
   id: string;
   url: string;
   label: string;
+};
+
+type ScanStep = "input" | "confirmPrompt" | "confirmLogo";
+
+type ScanPromptResponse = {
+  normalizedUrl: string;
+  mainPrompt: string;
+  error?: string;
+};
+
+type ScanLogoResponse = {
+  logoUrl: string;
+  error?: string;
 };
 
 const SAMPLE_STORAGE_BUCKET = "template";
@@ -96,6 +110,15 @@ export default function SettingPage() {
   const [saving, setSaving] = useState(false);
   const [uploadingSamples, setUploadingSamples] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [scanStep, setScanStep] = useState<ScanStep>("input");
+  const [websiteInput, setWebsiteInput] = useState("");
+  const [normalizedWebsiteUrl, setNormalizedWebsiteUrl] = useState("");
+  const [scanPrompt, setScanPrompt] = useState("");
+  const [scanLogoUrl, setScanLogoUrl] = useState<string | null>(null);
+  const [scanError, setScanError] = useState("");
+  const [isGeneratingScanPrompt, setIsGeneratingScanPrompt] = useState(false);
+  const [isLoadingScanLogo, setIsLoadingScanLogo] = useState(false);
+  const [isImportingScan, setIsImportingScan] = useState(false);
 
   const getSupabaseClient = () => {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -257,6 +280,42 @@ export default function SettingPage() {
           }
         : prev
     );
+  }
+
+  async function persistScanResult(nextMainPrompt: string, nextLogoUrl: string | null) {
+    if (!setting) return;
+
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      alert("Missing Supabase env vars.");
+      return false;
+    }
+
+    const { error } = await supabase
+      .from("setting")
+      .update({
+        main_prompt: nextMainPrompt,
+        logo: nextLogoUrl,
+      })
+      .eq("id", setting.id);
+
+    if (error) {
+      alert(error.message);
+      return false;
+    }
+
+    setSetting((prev) =>
+      prev
+        ? {
+            ...prev,
+            main_prompt: nextMainPrompt,
+            logo: nextLogoUrl,
+          }
+        : prev
+    );
+    setPrompt(nextMainPrompt);
+
+    return true;
   }
 
   async function onChangeLogo(files: FileList | null) {
@@ -443,6 +502,92 @@ export default function SettingPage() {
     });
   }
 
+  const needsInitialScan = useMemo(() => !prompt.trim(), [prompt]);
+
+  async function onGenerateScanPrompt(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const preparedWebsiteUrl = normalizeWebsiteInput(websiteInput);
+    if (!preparedWebsiteUrl) {
+      setScanError("Please enter a website URL.");
+      return;
+    }
+
+    setScanError("");
+    setIsGeneratingScanPrompt(true);
+    setWebsiteInput(preparedWebsiteUrl);
+
+    try {
+      const response = await fetch("/api/scan_website_prompt", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ websiteUrl: preparedWebsiteUrl }),
+      });
+
+      const data = (await response.json()) as ScanPromptResponse;
+      if (!response.ok) {
+        throw new Error(data.error || "Unable to generate prompt.");
+      }
+
+      setNormalizedWebsiteUrl(data.normalizedUrl);
+      setScanPrompt(data.mainPrompt || "");
+      setScanLogoUrl(null);
+      setScanStep("confirmPrompt");
+    } catch (error) {
+      setScanError(error instanceof Error ? error.message : "Unable to generate prompt.");
+    } finally {
+      setIsGeneratingScanPrompt(false);
+    }
+  }
+
+  async function onContinueScanToLogo() {
+    if (!scanPrompt.trim()) {
+      setScanError("Main prompt cannot be empty.");
+      return;
+    }
+
+    setScanError("");
+    setIsLoadingScanLogo(true);
+
+    try {
+      const websiteUrlForLogo = normalizedWebsiteUrl || normalizeWebsiteInput(websiteInput);
+      const response = await fetch("/api/scan_website_logo", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ websiteUrl: websiteUrlForLogo }),
+      });
+
+      const data = (await response.json()) as ScanLogoResponse;
+      if (!response.ok) {
+        throw new Error(data.error || "Unable to load website logo.");
+      }
+
+      setScanLogoUrl(data.logoUrl || null);
+      setScanStep("confirmLogo");
+    } catch (error) {
+      setScanError(error instanceof Error ? error.message : "Unable to load website logo.");
+    } finally {
+      setIsLoadingScanLogo(false);
+    }
+  }
+
+  async function onImportScanSettings() {
+    if (!scanPrompt.trim()) {
+      setScanError("Main prompt cannot be empty.");
+      return;
+    }
+
+    setIsImportingScan(true);
+    const imported = await persistScanResult(scanPrompt.trim(), scanLogoUrl);
+    setIsImportingScan(false);
+
+    if (!imported) {
+      return;
+    }
+
+    setScanError("");
+  }
+
   if (loading) {
     return <div className="p-6 text-sm text-muted-foreground">Loading settings...</div>;
   }
@@ -455,6 +600,124 @@ export default function SettingPage() {
           <AlertDescription>{configError}</AlertDescription>
         </Alert>
       </div>
+    );
+  }
+
+  if (needsInitialScan) {
+    return (
+      <section className="mx-auto flex w-full max-w-4xl flex-col gap-6 p-6 md:p-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Set up your brand</CardTitle>
+            <CardDescription>
+              No main prompt found yet. Scan your website to generate your settings first.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+              <SettingStepTag active={scanStep === "input"}>1. Scan URL</SettingStepTag>
+              <SettingStepTag active={scanStep === "confirmPrompt"}>2. Confirm Prompt</SettingStepTag>
+              <SettingStepTag active={scanStep === "confirmLogo"}>3. Confirm Logo</SettingStepTag>
+            </div>
+
+            {scanStep === "input" ? (
+              <Card className="rounded-xl border border-border/80 bg-background/70 py-0 shadow-none">
+                <CardContent className="p-4 md:p-5">
+                  <form onSubmit={onGenerateScanPrompt} className="flex flex-col gap-3 md:flex-row">
+                    <Input
+                      type="text"
+                      inputMode="url"
+                      value={websiteInput}
+                      onChange={(e) => setWebsiteInput(e.target.value)}
+                      placeholder="www.yourdomain.com"
+                      className="h-11 px-4"
+                      required
+                    />
+                    <Button
+                      type="submit"
+                      size="lg"
+                      disabled={isGeneratingScanPrompt}
+                      className="md:min-w-56"
+                    >
+                      {isGeneratingScanPrompt ? "Scanning website..." : "Scan website"}
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+            ) : null}
+
+            {scanStep === "confirmPrompt" ? (
+              <Card className="rounded-xl border border-border/80 bg-background/70 py-0 shadow-none">
+                <CardContent className="space-y-3 p-4 md:p-5">
+                  <p className="text-sm text-muted-foreground">
+                    Review and confirm your generated main prompt.
+                  </p>
+                  <Textarea
+                    value={scanPrompt}
+                    onChange={(e) => setScanPrompt(e.target.value)}
+                    className="min-h-[180px] p-3"
+                  />
+                  <div className="flex flex-wrap gap-2">
+                    <Button type="button" variant="outline" size="lg" onClick={() => setScanStep("input")}>
+                      Back
+                    </Button>
+                    <Button
+                      type="button"
+                      size="lg"
+                      onClick={onContinueScanToLogo}
+                      disabled={isLoadingScanLogo}
+                    >
+                      {isLoadingScanLogo ? "Fetching logo..." : "Confirm prompt and continue"}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : null}
+
+            {scanStep === "confirmLogo" ? (
+              <Card className="rounded-xl border border-border/80 bg-background/70 py-0 shadow-none">
+                <CardContent className="space-y-3 p-4 md:p-5">
+                  <p className="text-sm text-muted-foreground">
+                    We found your website logo from favicon. Confirm and continue.
+                  </p>
+
+                  <div className="flex min-h-[96px] w-fit items-center justify-center rounded-lg border border-border bg-background p-3">
+                    {scanLogoUrl ? (
+                      <img
+                        src={scanLogoUrl}
+                        alt="Website logo from favicon"
+                        className="h-16 w-16 object-contain"
+                      />
+                    ) : (
+                      <span className="text-sm text-muted-foreground">No logo found</span>
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <Button type="button" variant="outline" size="lg" onClick={() => setScanStep("confirmPrompt")}>
+                      Back
+                    </Button>
+                    <Button
+                      type="button"
+                      size="lg"
+                      onClick={onImportScanSettings}
+                      disabled={isImportingScan}
+                    >
+                      {isImportingScan ? "Saving settings..." : "Use these settings"}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : null}
+
+            {scanError ? (
+              <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {scanError}
+              </p>
+            ) : null}
+          </CardContent>
+        </Card>
+      </section>
     );
   }
 
@@ -677,4 +940,36 @@ export default function SettingPage() {
       </div>
     </section>
   );
+}
+
+function SettingStepTag({
+  active,
+  children,
+}: {
+  active: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <span
+      className={cn(
+        "rounded-full border px-3 py-1",
+        active
+          ? "border-foreground/20 bg-foreground/5 text-foreground"
+          : "border-border bg-background text-muted-foreground"
+      )}
+    >
+      {children}
+    </span>
+  );
+}
+
+function normalizeWebsiteInput(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+
+  if (/^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//.test(trimmed)) {
+    return trimmed;
+  }
+
+  return `https://${trimmed}`;
 }
