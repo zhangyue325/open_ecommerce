@@ -47,22 +47,23 @@ export default function AnimatedHeroHeadline() {
   }, [displayText, isDeleting, termIndex]);
 
   return (
-    <h1 className="text-4xl font-semibold leading-tight tracking-[-0.03em] md:text-6xl">
-      Generate your
-      <span className="relative inline-grid whitespace-nowrap align-middle">
-        <span aria-hidden className="invisible col-start-1 row-start-1 pr-2 text-yellow-500">
-          {longestTerm}
+    <h1 className="flex flex-col items-center gap-2 text-center text-4xl font-semibold leading-tight tracking-[-0.03em] md:text-6xl">
+      <span>Generate your</span>
+      <span className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+        <span className="relative inline-grid whitespace-nowrap align-middle">
+          <span aria-hidden className="invisible col-start-1 row-start-1 text-yellow-500">
+            {longestTerm}
+          </span>
+          <span className="col-start-1 row-start-1 inline-flex items-center justify-center">
+            <span className="text-yellow-500">{displayText}</span>
+            <span
+              aria-hidden
+              className="ml-1 inline-block h-[0.9em] w-px animate-pulse bg-yellow-500"
+            />
+          </span>
         </span>
-        <span className="col-start-1 row-start-1 inline-flex items-center">
-          <span className="text-yellow-500">{displayText}</span>
-          <span
-            aria-hidden
-            className="ml-1 inline-block h-[0.9em] w-px animate-pulse bg-yellow-500"
-          />
-        </span>
-        within 5 secs!
+        <span>within 5 secs!</span>
       </span>
-
     </h1>
   );
 }

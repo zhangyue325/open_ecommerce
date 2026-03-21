@@ -3,12 +3,16 @@
 import { useRef } from "react";
 import { ChevronDown, Crop, Gem, ImagePlus, Minus, Plus, Sparkles, WandSparkles } from "lucide-react";
 
-const MODEL_OPTIONS = ["Soul 2.0", "Flux Pro", "GPT Image 1", "Imagen 4"];
+const MODEL_OPTIONS = [
+  { value: "gemini-3-pro-image-preview", label: "Nano Banana 2" },
+  { value: "gemini-2.5-flash-image", label: "Nano Banana Pro" },
+  { value: "gemini-3.1-flash-image-preview", label: "Nano Banana" },
+];
 const RATIO_OPTIONS = ["1:1", "3:4", "4:5", "16:9", "9:16"];
 const RESOLUTION_OPTIONS = [
-  { value: "1024x1024", label: "1k" },
-  { value: "1536x1024", label: "1.5k" },
-  { value: "2048x2048", label: "2k" },
+  { value: "1K", label: "1K" },
+  { value: "2K", label: "2K" },
+  { value: "3K", label: "3K" },
 ];
 
 type WorkspaceComposerControlsProps = {
@@ -39,6 +43,7 @@ export default function WorkspaceComposerControls({
   onUploadImages,
 }: WorkspaceComposerControlsProps) {
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
+  const modelLabel = MODEL_OPTIONS.find((option) => option.value === model)?.label ?? MODEL_OPTIONS[0].label;
   const resolutionLabel =
     RESOLUTION_OPTIONS.find((option) => option.value === resolution)?.label ?? RESOLUTION_OPTIONS[0].label;
 
@@ -67,7 +72,7 @@ export default function WorkspaceComposerControls({
 
       <SelectPill
         icon={<WandSparkles className="size-3.5 text-[#4a596e]" />}
-        label={model}
+        label={modelLabel}
         value={model}
         options={MODEL_OPTIONS}
         onChange={onChangeModel}
@@ -119,7 +124,7 @@ function SelectPill({
   icon: React.ReactNode;
   label: string;
   value: string;
-  options: string[];
+  options: Array<string | { value: string; label: string }>;
   labels?: Record<string, string>;
   onChange: (value: string) => void;
 }) {
@@ -134,11 +139,16 @@ function SelectPill({
         className="absolute inset-0 cursor-pointer opacity-0"
         aria-label={label}
       >
-        {options.map((option) => (
-          <option key={option} value={option}>
-            {labels?.[option] ?? option}
-          </option>
-        ))}
+        {options.map((option) => {
+          const optionValue = typeof option === "string" ? option : option.value;
+          const optionLabel = typeof option === "string" ? (labels?.[option] ?? option) : option.label;
+
+          return (
+            <option key={optionValue} value={optionValue}>
+              {optionLabel}
+            </option>
+          );
+        })}
       </select>
     </label>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { ChevronDown, Send, X } from "lucide-react";
+import { ChevronDown, Sparkles, X } from "lucide-react";
 import WorkspaceComposerControls from "./workspace-composer-controls";
 
 const PLATFORM_OPTIONS = ["Google Ads", "Meta Ads", "Shopee", "Lazada", "Shopify"];
@@ -51,11 +51,14 @@ export default function WorkspacePage() {
   const [selectedPurpose, setSelectedPurpose] = useState<string>(
     PLATFORM_PURPOSE_MAP[PLATFORM_OPTIONS[0]]?.[0] ?? ""
   );
-  const [model, setModel] = useState<string>("Soul 2.0");
+  const [model, setModel] = useState<string>("gemini-3.1-flash-image-preview");
   const [ratio, setRatio] = useState<string>("1:1");
-  const [resolution, setResolution] = useState<string>("1024x1024");
+  const [resolution, setResolution] = useState<string>("1K");
   const [promptEnhance, setPromptEnhance] = useState<boolean>(false);
   const [batchSize, setBatchSize] = useState<number>(1);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState("");
+  const [generatedImages, setGeneratedImages] = useState<string[]>([]);
 
   const onSelectPlatform = (platform: string) => {
     setSelectedPlatform(platform);
@@ -67,8 +70,10 @@ export default function WorkspacePage() {
     return `Create ${selectedPurpose.toLowerCase()} visuals optimized for ${selectedPlatform}. Keep messaging conversion-focused, product-forward, and suitable for e-commerce paid campaigns.`;
   }, [selectedPlatform, selectedPurpose]);
   const [promptText, setPromptText] = useState<string>(generatedPrompt);
-  const [uploadedImages, setUploadedImages] = useState<Array<{ id: string; name: string; previewUrl: string }>>([]);
-  const uploadedImagesRef = useRef<Array<{ id: string; name: string; previewUrl: string }>>([]);
+  const [uploadedImages, setUploadedImages] = useState<
+    Array<{ id: string; name: string; previewUrl: string; file: File }>
+  >([]);
+  const uploadedImagesRef = useRef<Array<{ id: string; name: string; previewUrl: string; file: File }>>([]);
 
   useEffect(() => {
     setPromptText(generatedPrompt);
@@ -93,6 +98,7 @@ export default function WorkspacePage() {
         id: `${file.name}-${file.lastModified}-${Math.random().toString(36).slice(2, 8)}`,
         name: file.name,
         previewUrl: URL.createObjectURL(file),
+        file,
       }));
 
     if (nextItems.length === 0) return;
@@ -107,6 +113,66 @@ export default function WorkspacePage() {
       }
       return previous.filter((item) => item.id !== id);
     });
+  };
+
+  const onGenerate = async () => {
+    if (!promptText.trim()) {
+      setError("Enter a prompt first.");
+      return;
+    }
+
+    setIsGenerating(true);
+    setError("");
+    setGeneratedImages([]);
+
+    try {
+      const referenceImages = await Promise.all(
+        uploadedImages.map(async (item) => ({
+          name: item.name,
+          mimeType: item.file.type || "image/png",
+          data: await fileToBase64(item.file),
+        }))
+      );
+
+      const res = await fetch("/api/generate_image", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt: promptText,
+          purpose: selectedPurpose,
+          model,
+          ratio,
+          resolution,
+          numberOfCreatives: batchSize,
+          referenceImages,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Generation failed.");
+        return;
+      }
+
+      const nextImages = Array.isArray(data.imageBase64List)
+        ? data.imageBase64List.map((item: string) => `data:image/png;base64,${item}`)
+        : data.imageBase64
+          ? [`data:image/png;base64,${data.imageBase64}`]
+          : [];
+
+      if (nextImages.length === 0) {
+        setError("No image generated.");
+        return;
+      }
+
+      setGeneratedImages(nextImages);
+    } catch {
+      setError("Generation failed.");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -195,17 +261,52 @@ export default function WorkspacePage() {
               <ChevronDown className="hidden size-4 text-[#c0c5cd] md:block" />
               <button
                 type="button"
+                onClick={onGenerate}
+                disabled={isGenerating}
                 className="inline-flex h-11 items-center gap-2 rounded-full bg-[#181b22] px-5 text-sm font-semibold text-white transition hover:bg-[#232734]"
               >
-                <Send className="size-4" />
-                Send
+                <Sparkles className="size-4" />
+                {isGenerating ? "Generating..." : "Generate"}
               </button>
             </div>
           </div>
+
+          {error ? (
+            <p className="mt-4 text-sm text-[#a14444]">{error}</p>
+          ) : null}
         </div>
+
+        {generatedImages.length > 0 ? (
+          <div className="mt-6 grid w-full gap-4 md:grid-cols-2">
+            {generatedImages.map((imageUrl, index) => (
+              <div
+                key={`${imageUrl.slice(0, 32)}-${index}`}
+                className="overflow-hidden rounded-2xl border border-[#d3d7de] bg-white p-2 shadow-[0_8px_20px_rgba(17,22,32,0.06)]"
+              >
+                <img
+                  src={imageUrl}
+                  alt={`Generated creative ${index + 1}`}
+                  className="h-full w-full rounded-xl object-cover"
+                />
+              </div>
+            ))}
+          </div>
+        ) : null}
       </div>
     </section>
   );
+}
+
+async function fileToBase64(file: File) {
+  const buffer = await file.arrayBuffer();
+  let binary = "";
+  const bytes = new Uint8Array(buffer);
+
+  bytes.forEach((byte) => {
+    binary += String.fromCharCode(byte);
+  });
+
+  return btoa(binary);
 }
 
 function SelectionGroup({
