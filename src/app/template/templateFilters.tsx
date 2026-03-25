@@ -40,13 +40,13 @@ export default function TemplateFilters({
   onChangeQuery,
 }: Props) {
   return (
-    <div className="col-span-2 md:col-span-4 lg:col-span-5 rounded-xl border p-3 grid gap-3 md:grid-cols-3 lg:grid-cols-6">
+    <div className="col-span-2 grid gap-3 rounded-2xl border border-white/10 bg-[#0a0d12]/90 p-3 md:col-span-4 md:grid-cols-3 lg:col-span-5 lg:grid-cols-6">
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-[color:var(--ink-muted)]">Type</label>
+        <label className="text-xs uppercase tracking-wide text-zinc-400">Type</label>
         <select
           value={typeFilter}
           onChange={(e) => onChangeType(e.target.value)}
-          className="rounded-lg border border-(--ring) bg-white px-2 py-2 text-xs"
+          className="rounded-lg border border-white/15 bg-white/5 px-2 py-2 text-xs text-zinc-100"
         >
           <option value="all">All</option>
           {typeOptions.map((option) => (
@@ -58,11 +58,11 @@ export default function TemplateFilters({
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-[color:var(--ink-muted)]">Purpose</label>
+        <label className="text-xs uppercase tracking-wide text-zinc-400">Purpose</label>
         <select
           value={purposeFilter}
           onChange={(e) => onChangePurpose(e.target.value)}
-          className="rounded-lg border border-(--ring) bg-white px-2 py-2 text-xs"
+          className="rounded-lg border border-white/15 bg-white/5 px-2 py-2 text-xs text-zinc-100"
         >
           <option value="all">All</option>
           {purposeOptions.map((option) => (
@@ -74,11 +74,11 @@ export default function TemplateFilters({
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-[color:var(--ink-muted)]">Model</label>
+        <label className="text-xs uppercase tracking-wide text-zinc-400">Model</label>
         <select
           value={modelFilter}
           onChange={(e) => onChangeModel(e.target.value)}
-          className="rounded-lg border border-(--ring) bg-white px-2 py-2 text-xs"
+          className="rounded-lg border border-white/15 bg-white/5 px-2 py-2 text-xs text-zinc-100"
         >
           <option value="all">All</option>
           {modelOptions.map((option) => (
@@ -90,11 +90,11 @@ export default function TemplateFilters({
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-[color:var(--ink-muted)]">Ratio</label>
+        <label className="text-xs uppercase tracking-wide text-zinc-400">Ratio</label>
         <select
           value={ratioFilter}
           onChange={(e) => onChangeRatio(e.target.value)}
-          className="rounded-lg border border-(--ring) bg-white px-2 py-2 text-xs"
+          className="rounded-lg border border-white/15 bg-white/5 px-2 py-2 text-xs text-zinc-100"
         >
           <option value="all">All</option>
           {ratioOptions.map((option) => (
@@ -106,11 +106,11 @@ export default function TemplateFilters({
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-[color:var(--ink-muted)]">Author</label>
+        <label className="text-xs uppercase tracking-wide text-zinc-400">Author</label>
         <select
           value={authorFilter}
           onChange={(e) => onChangeAuthor(e.target.value)}
-          className="rounded-lg border border-(--ring) bg-white px-2 py-2 text-xs"
+          className="rounded-lg border border-white/15 bg-white/5 px-2 py-2 text-xs text-zinc-100"
         >
           <option value="all">All</option>
           {authorOptions.map((option) => (
@@ -122,12 +122,12 @@ export default function TemplateFilters({
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-[color:var(--ink-muted)]">Search</label>
+        <label className="text-xs uppercase tracking-wide text-zinc-400">Search</label>
         <input
           value={query}
           onChange={(e) => onChangeQuery(e.target.value)}
           placeholder="Name, prompt, model, author..."
-          className="rounded-lg border border-(--ring) bg-white px-2 py-2 text-xs"
+          className="rounded-lg border border-white/15 bg-white/5 px-2 py-2 text-xs text-zinc-100 placeholder:text-zinc-500"
         />
       </div>
     </div>

@@ -6,11 +6,9 @@ export default function TemplateLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <>
-      <SiteNavBar />
-      <main>
-        <div className="flex flex-col gap-6">{children}</div>
-      </main>
-    </>
+    <div className="h-[100dvh] overflow-hidden bg-[#050608]">
+      <SiteNavBar mode="fluid" />
+      <div className="h-[calc(100dvh-4rem)]">{children}</div>
+    </div>
   );
 }

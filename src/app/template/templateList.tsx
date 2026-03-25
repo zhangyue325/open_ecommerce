@@ -111,12 +111,18 @@ export default function TemplateList({
         videoRatioOptions={videoRatioOptions}
       />
 
+      {filteredTemplates.length === 0 ? (
+        <div className="col-span-2 rounded-xl border border-dashed border-white/15 bg-[#0a0d12]/90 px-4 py-10 text-center text-sm text-zinc-400 md:col-span-4 lg:col-span-5">
+          No templates found for your current filters.
+        </div>
+      ) : null}
+
       {filteredTemplates.map((t) => (
-        <div key={t.id} className="relative border rounded-xl p-3 flex flex-col gap-2">
+        <div key={t.id} className="relative flex flex-col gap-2 rounded-xl border border-white/10 bg-[#0a0d12]/90 p-3">
           <DeleteTemplateButton templateId={t.id} />
           {t.descriptive_image &&
             (isVideoSource(t.descriptive_image) ? (
-              <div className="w-full h-56 rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden">
+              <div className="flex h-56 w-full items-center justify-center overflow-hidden rounded-lg bg-black/30">
                 <video
                   src={t.descriptive_image}
                   className="max-h-full max-w-full object-contain"
@@ -126,7 +132,7 @@ export default function TemplateList({
                 />
               </div>
             ) : (
-              <div className="w-full h-56 rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden">
+              <div className="flex h-56 w-full items-center justify-center overflow-hidden rounded-lg bg-black/30">
                 <img
                   src={t.descriptive_image}
                   className="max-h-full max-w-full object-contain"
@@ -135,12 +141,12 @@ export default function TemplateList({
               </div>
             ))}
 
-          <h3 className="font-medium text-sm">{t.template_name || `Template ${t.id}`}</h3>
-          <p className="text-xs text-gray-500">{t.type || "image"} | {t.purpose || "-"}</p>
-          <p className="text-xs text-gray-500">{t.model || "-"}</p>
-          <p className="text-xs text-gray-500">ratio: {t.ratio || "-"}</p>
-          <p className="text-xs text-gray-500">author: {t.author || "-"}</p>
-          <p className="text-xs text-gray-600 line-clamp-3">{t.prompt}</p>
+          <h3 className="text-sm font-medium text-zinc-100">{t.template_name || `Template ${t.id}`}</h3>
+          <p className="text-xs text-zinc-400">{t.type || "image"} | {t.purpose || "-"}</p>
+          <p className="text-xs text-zinc-400">{t.model || "-"}</p>
+          <p className="text-xs text-zinc-400">ratio: {t.ratio || "-"}</p>
+          <p className="text-xs text-zinc-400">author: {t.author || "-"}</p>
+          <p className="line-clamp-3 text-xs text-zinc-300">{t.prompt}</p>
 
           <TemplateCtaButton
             draft={{

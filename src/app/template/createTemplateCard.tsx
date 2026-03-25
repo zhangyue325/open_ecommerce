@@ -131,24 +131,24 @@ export default function CreateTemplateCard({
   };
 
   return (
-    <div className="border rounded-xl p-3 flex flex-col gap-3 bg-[color:var(--surface-2)]">
-      <h3 className="font-semibold text-sm">Create your template</h3>
+    <div className="flex flex-col gap-3 rounded-xl border border-white/10 bg-[#0a0d12]/90 p-3">
+      <h3 className="text-sm font-semibold text-white">Create your template</h3>
 
       <input
         value={templateName}
         onChange={(e) => setTemplateName(e.target.value)}
         placeholder="Template name"
-        className="rounded-lg border border-(--ring) bg-white px-2 py-2 text-xs"
+        className="rounded-lg border border-white/15 bg-white/5 px-2 py-2 text-xs text-zinc-100 placeholder:text-zinc-500"
       />
 
       <div className="grid gap-2 md:grid-cols-2">
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-[color:var(--ink-muted)]">type</label>
+          <label className="text-xs uppercase tracking-wide text-zinc-400">type</label>
           {typeOptions.length > 0 ? (
             <select
               value={type}
               onChange={(e) => setType(e.target.value)}
-              className="rounded-lg border border-(--ring) bg-white px-2 py-2 text-xs"
+              className="rounded-lg border border-white/15 bg-white/5 px-2 py-2 text-xs text-zinc-100"
             >
               {typeOptions.map((option) => (
                 <option key={option} value={option}>
@@ -161,18 +161,18 @@ export default function CreateTemplateCard({
               value={type}
               onChange={(e) => setType(e.target.value)}
               placeholder="Type"
-              className="rounded-lg border border-(--ring) bg-white px-2 py-2 text-xs"
+              className="rounded-lg border border-white/15 bg-white/5 px-2 py-2 text-xs text-zinc-100 placeholder:text-zinc-500"
             />
           )}
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-[color:var(--ink-muted)]">purpose</label>
+          <label className="text-xs uppercase tracking-wide text-zinc-400">purpose</label>
           {purposeOptions.length > 0 ? (
             <select
               value={purpose}
               onChange={(e) => setPurpose(e.target.value)}
-              className="rounded-lg border border-(--ring) bg-white px-2 py-2 text-xs"
+              className="rounded-lg border border-white/15 bg-white/5 px-2 py-2 text-xs text-zinc-100"
             >
               {purposeOptions.map((option) => (
                 <option key={option} value={option}>
@@ -185,7 +185,7 @@ export default function CreateTemplateCard({
               value={purpose}
               onChange={(e) => setPurpose(e.target.value)}
               placeholder="Purpose"
-              className="rounded-lg border border-(--ring) bg-white px-2 py-2 text-xs"
+              className="rounded-lg border border-white/15 bg-white/5 px-2 py-2 text-xs text-zinc-100 placeholder:text-zinc-500"
             />
           )}
         </div>
@@ -193,12 +193,12 @@ export default function CreateTemplateCard({
 
       <div className="grid gap-2 md:grid-cols-2">
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-[color:var(--ink-muted)]">model</label>
+          <label className="text-xs uppercase tracking-wide text-zinc-400">model</label>
           {activeModelOptions.length > 0 ? (
             <select
               value={model}
               onChange={(e) => setModel(e.target.value)}
-              className="rounded-lg border border-(--ring) bg-white px-2 py-2 text-xs"
+              className="rounded-lg border border-white/15 bg-white/5 px-2 py-2 text-xs text-zinc-100"
             >
               {activeModelOptions.map((option) => (
                 <option key={option} value={option}>
@@ -211,18 +211,18 @@ export default function CreateTemplateCard({
               value={model}
               onChange={(e) => setModel(e.target.value)}
               placeholder="Model"
-              className="rounded-lg border border-(--ring) bg-white px-2 py-2 text-xs"
+              className="rounded-lg border border-white/15 bg-white/5 px-2 py-2 text-xs text-zinc-100 placeholder:text-zinc-500"
             />
           )}
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-[color:var(--ink-muted)]">ratio</label>
+          <label className="text-xs uppercase tracking-wide text-zinc-400">ratio</label>
           {activeRatioOptions.length > 0 ? (
             <select
               value={ratio}
               onChange={(e) => setRatio(e.target.value)}
-              className="rounded-lg border border-(--ring) bg-white px-2 py-2 text-xs"
+              className="rounded-lg border border-white/15 bg-white/5 px-2 py-2 text-xs text-zinc-100"
             >
               {activeRatioOptions.map((option) => (
                 <option key={option} value={option}>
@@ -235,38 +235,38 @@ export default function CreateTemplateCard({
               value={ratio}
               onChange={(e) => setRatio(e.target.value)}
               placeholder="Ratio"
-              className="rounded-lg border border-(--ring) bg-white px-2 py-2 text-xs"
+              className="rounded-lg border border-white/15 bg-white/5 px-2 py-2 text-xs text-zinc-100 placeholder:text-zinc-500"
             />
           )}
         </div>
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-[color:var(--ink-muted)]">author</label>
+        <label className="text-xs uppercase tracking-wide text-zinc-400">author</label>
         <input
           value={author}
           onChange={(e) => setAuthor(e.target.value)}
           placeholder="Author"
-          className="rounded-lg border border-(--ring) bg-white px-2 py-2 text-xs"
+          className="rounded-lg border border-white/15 bg-white/5 px-2 py-2 text-xs text-zinc-100 placeholder:text-zinc-500"
         />
       </div>
 
       <textarea
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
-        className="min-h-[160px] rounded-lg border border-(--ring) bg-white p-2 text-xs"
+        className="min-h-[160px] rounded-lg border border-white/15 bg-white/5 p-2 text-xs text-zinc-100 placeholder:text-zinc-500"
         placeholder="Template prompt..."
       />
 
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-[color:var(--ink-muted)]">
+        <label className="text-xs uppercase tracking-wide text-zinc-400">
           {type === "video" ? "Reference video" : "Reference image"}
         </label>
         <input
           type="file"
           accept={type === "video" ? "video/*" : "image/*"}
           onChange={(e) => setReferenceFile(e.target.files?.[0] || null)}
-          className="text-xs"
+          className="text-xs text-zinc-300 file:mr-2 file:rounded-md file:border file:border-white/20 file:bg-white/10 file:px-2 file:py-1 file:text-zinc-100"
         />
       </div>
 
@@ -274,12 +274,12 @@ export default function CreateTemplateCard({
         type="button"
         disabled={saving}
         onClick={onCreate}
-        className="inline-flex items-center justify-center rounded-xl bg-black px-3 py-2 text-xs font-medium text-white disabled:opacity-50"
+        className="inline-flex items-center justify-center rounded-xl bg-emerald-400 px-3 py-2 text-xs font-semibold text-black disabled:opacity-50"
       >
         {saving ? "Creating..." : "Create template"}
       </button>
 
-      {message && <p className="text-xs text-[color:var(--ink-muted)]">{message}</p>}
+      {message && <p className="text-xs text-zinc-300">{message}</p>}
     </div>
   );
 }

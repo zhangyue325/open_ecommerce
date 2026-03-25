@@ -48,7 +48,7 @@ export default function DeleteTemplateButton({ templateId }: { templateId: numbe
       disabled={deleting}
       aria-label="Delete template"
       title="Delete template"
-      className="absolute right-2 top-2 rounded-md p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50"
+      className="absolute right-2 top-2 rounded-md p-1 text-zinc-500 transition hover:bg-white/10 hover:text-zinc-200 disabled:opacity-50"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

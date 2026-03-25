@@ -7,7 +7,7 @@ export default function WorkspaceLayout({
 }>) {
   return (
     <div className="h-[100dvh] overflow-hidden bg-[#050608]">
-      <SiteNavBar />
+      <SiteNavBar mode="fluid" />
       <div className="h-[calc(100dvh-4rem)]">{children}</div>
     </div>
   );

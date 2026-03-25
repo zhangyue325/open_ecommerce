@@ -236,7 +236,7 @@ export default function LandingPage() {
         <div className="absolute right-0 top-1/3 h-72 w-72 rounded-full bg-cyan-500/20 blur-[120px]" />
       </div>
 
-      <SiteNavBar />
+      <SiteNavBar mode="fluid" />
 
       <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-16 pt-10 sm:px-6 lg:px-8">
         <section className="reveal-up text-center">
@@ -263,7 +263,7 @@ export default function LandingPage() {
               Create with AI
             </Link>
             <Link
-              href="/template"
+              href="/workspace"
               className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/20 bg-white/5 px-4 text-sm font-medium text-white transition hover:bg-white/10"
             >
               Browse templates
