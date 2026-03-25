@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
-import LandingNaviBar from "../landing/landing-navi-bar";
 import LoginModalTrigger from "../login/login-modal-trigger";
 
 const solutionPillars = [
@@ -51,7 +50,6 @@ const useCases = [
 export default function SolutionPage() {
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_0%_0%,#ffe2b8_0%,transparent_28%),radial-gradient(circle_at_100%_0%,#c2f1e4_0%,transparent_28%),var(--background)]">
-      <LandingNaviBar currentPage="solution" />
 
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-5 pb-12 pt-8 md:px-8 md:pb-16">
         <section className="overflow-hidden rounded-[2rem] border border-border/80 bg-card/90 shadow-sm">
