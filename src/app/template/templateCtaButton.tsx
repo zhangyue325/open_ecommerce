@@ -1,7 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { DraftPayload } from "../generation/types";
+
+type DraftPayload = {
+  templateId?: number;
+  prompt: string;
+  purpose?: string;
+  type: "image" | "video";
+  model?: string;
+  ratio?: string;
+};
 
 const DRAFT_KEY = "generate:draft";
 

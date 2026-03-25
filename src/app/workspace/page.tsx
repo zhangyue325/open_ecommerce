@@ -2,7 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ChevronDown, Sparkles, X } from "lucide-react";
+import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 import WorkspaceComposerControls from "./workspace-composer-controls";
+import LoginModalTrigger from "../login/login-modal-trigger";
+import { createClient } from "../../../lib/supabase/client";
 
 const PLATFORM_OPTIONS = ["Google Ads", "Meta Ads", "Shopee", "Lazada", "Shopify"];
 const PLATFORM_PURPOSE_MAP: Record<string, string[]> = {
@@ -59,6 +62,7 @@ export default function WorkspacePage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState("");
   const [generatedImages, setGeneratedImages] = useState<string[]>([]);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   const onSelectPlatform = (platform: string) => {
     setSelectedPlatform(platform);
@@ -82,6 +86,43 @@ export default function WorkspacePage() {
   useEffect(() => {
     uploadedImagesRef.current = uploadedImages;
   }, [uploadedImages]);
+
+  useEffect(() => {
+    let active = true;
+    let unsubscribe: (() => void) | undefined;
+
+    (async () => {
+      try {
+        const supabase = createClient();
+        const {
+          data: { user },
+          error: getUserError,
+        } = await supabase.auth.getUser();
+
+        if (active) {
+          setIsAuthenticated(!getUserError && Boolean(user));
+        }
+
+        const { data } = supabase.auth.onAuthStateChange(
+          (_event: AuthChangeEvent, session: Session | null) => {
+          if (!active) return;
+          setIsAuthenticated(Boolean(session?.user));
+          }
+        );
+
+        unsubscribe = () => data.subscription.unsubscribe();
+      } catch {
+        if (active) {
+          setIsAuthenticated(false);
+        }
+      }
+    })();
+
+    return () => {
+      active = false;
+      unsubscribe?.();
+    };
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -259,15 +300,37 @@ export default function WorkspacePage() {
 
             <div className="flex items-center gap-3">
               <ChevronDown className="hidden size-4 text-[#c0c5cd] md:block" />
-              <button
-                type="button"
-                onClick={onGenerate}
-                disabled={isGenerating}
-                className="inline-flex h-11 items-center gap-2 rounded-full bg-[#181b22] px-5 text-sm font-semibold text-white transition hover:bg-[#232734]"
-              >
-                <Sparkles className="size-4" />
-                {isGenerating ? "Generating..." : "Generate"}
-              </button>
+              {isAuthenticated === null ? (
+                <button
+                  type="button"
+                  disabled
+                  className="inline-flex h-11 items-center gap-2 rounded-full bg-[#181b22]/80 px-5 text-sm font-semibold text-white"
+                >
+                  <Sparkles className="size-4" />
+                  Checking...
+                </button>
+              ) : isAuthenticated ? (
+                <button
+                  type="button"
+                  onClick={onGenerate}
+                  disabled={isGenerating}
+                  className="inline-flex h-11 items-center gap-2 rounded-full bg-[#181b22] px-5 text-sm font-semibold text-white transition hover:bg-[#232734]"
+                >
+                  <Sparkles className="size-4" />
+                  {isGenerating ? "Generating..." : "Generate"}
+                </button>
+              ) : (
+                <LoginModalTrigger
+                  label={
+                    <span className="inline-flex items-center gap-2">
+                      <Sparkles className="size-4" />
+                      Generate
+                    </span>
+                  }
+                  nextPath="/workspace"
+                  className="h-11 rounded-full bg-[#181b22] px-5 text-sm font-semibold text-white transition hover:bg-[#232734]"
+                />
+              )}
             </div>
           </div>
 

@@ -239,9 +239,9 @@ export default function LandingPage() {
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           <Link href="/landing" className="flex items-center gap-2.5">
             <span className="inline-flex size-8 items-center justify-center rounded-full bg-gradient-to-br from-emerald-300 to-cyan-400 text-sm font-black text-black">
-              OC
+              OE
             </span>
-            <span className="text-sm font-semibold tracking-wide text-white">OpenCommerce</span>
+            <span className="text-sm font-semibold tracking-wide text-white">Open Ecommerce</span>
           </Link>
 
           {/* <nav className="hidden items-center gap-6 text-sm text-zinc-400 md:flex">
@@ -301,12 +301,13 @@ export default function LandingPage() {
           </p>
 
           <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-            <LoginModalTrigger
-              label="Create with AI"
-              nextPath="/generation"
-              size="lg"
-              className="bg-emerald-400 px-5 font-semibold text-black hover:bg-emerald-300"
-            />
+            <Link
+              href="/workspace"
+              className="inline-flex h-9 items-center gap-2 rounded-lg bg-emerald-400 px-5 text-sm font-semibold text-black transition hover:bg-emerald-300"
+            >
+              <Sparkles className="size-4" />
+              Create with AI
+            </Link>
             <Link
               href="/template"
               className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/20 bg-white/5 px-4 text-sm font-medium text-white transition hover:bg-white/10"
