@@ -7,6 +7,16 @@ type ReferenceImage = {
   data?: string;
 };
 
+function getPurposePrompt(
+  purposePrompt: unknown,
+  purpose: string | undefined
+) {
+  if (!purposePrompt || typeof purposePrompt !== "object") return "";
+  const value = (purposePrompt as Record<string, unknown>)[purpose || ""];
+  if (typeof value === "string") return value;
+  return "";
+}
+
 const ALLOWED_IMAGE_MODELS = new Set([
   "gemini-3-pro-image-preview",
   "gemini-2.5-flash-image",
@@ -15,8 +25,11 @@ const ALLOWED_IMAGE_MODELS = new Set([
 
 export async function POST(req: Request) {
   try {
-    const { prompt, model, ratio, resolution, numberOfCreatives, referenceImages } = (await req.json()) as {
+    const { prompt, platform, purpose, promptEnhance, model, ratio, resolution, numberOfCreatives, referenceImages } = (await req.json()) as {
       prompt?: string;
+      platform?: string;
+      purpose?: string;
+      promptEnhance?: boolean;
       model?: string;
       ratio?: string;
       resolution?: string;
@@ -50,7 +63,7 @@ export async function POST(req: Request) {
 
     const { data: setting, error: settingError } = await supabase
       .from("setting")
-      .select("main_prompt,logo")
+      .select("main_prompt,purpose_prompt,logo")
       .eq("user_id", user.id)
       .order("id", { ascending: false })
       .limit(1)
@@ -64,10 +77,24 @@ export async function POST(req: Request) {
       return Response.json({ error: "No setting found for current user" }, { status: 404 });
     }
 
+    const purposePrompt = getPurposePrompt(setting?.purpose_prompt, purpose);
+    const organizedPrompt = [
+      "Generate high-quality ecommerce creative images.",
+      platform ? `Target platform: ${platform}` : "",
+      purpose ? `Creative purpose: ${purpose}` : "",
+      setting?.main_prompt ? `Brand guidance: ${setting.main_prompt}` : "",
+      purposePrompt ? `Purpose guidance: ${purposePrompt}` : "",
+      promptEnhance
+        ? "Enhance with clear composition, product focus, strong lighting, and conversion-friendly visual hierarchy."
+        : "",
+      `User request: ${prompt}`,
+    ]
+      .filter(Boolean)
+      .join("\n");
+
     // prepare prompt
     const contentParts: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> = [
-      { text: setting?.main_prompt || "" },
-      { text: prompt || "" },
+      { text: organizedPrompt },
     ];
 
     // prepare logo image
@@ -108,9 +135,6 @@ export async function POST(req: Request) {
           },
         },
       });
-      
-      console.log(response);
-
       const parts = response.candidates?.[0]?.content?.parts ?? [];
       const imageBase64 = parts.find((part) => part.inlineData?.data)?.inlineData?.data ?? null;
       const textOutput = parts

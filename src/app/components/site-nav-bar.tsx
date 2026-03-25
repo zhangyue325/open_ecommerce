@@ -11,7 +11,6 @@ import { createClient } from "../../../lib/supabase/client";
 const navItems = [
   { label: "Home", href: "/landing" },
   { label: "Workspace", href: "/workspace" },
-  // { label: "Templates", href: "/template" },
 ];
 
 let cachedAuthUser: User | null | undefined = undefined;

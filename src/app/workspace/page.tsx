@@ -62,6 +62,7 @@ export default function WorkspacePage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState("");
   const [generatedImages, setGeneratedImages] = useState<string[]>([]);
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   const onSelectPlatform = (platform: string) => {
@@ -70,18 +71,11 @@ export default function WorkspacePage() {
     setSelectedPurpose((previous) => (nextPurposes.includes(previous) ? previous : nextPurposes[0] ?? ""));
   };
 
-  const generatedPrompt = useMemo(() => {
-    return `Create ${selectedPurpose.toLowerCase()} visuals optimized for ${selectedPlatform}. Keep messaging conversion-focused, product-forward, and suitable for e-commerce paid campaigns.`;
-  }, [selectedPlatform, selectedPurpose]);
-  const [promptText, setPromptText] = useState<string>(generatedPrompt);
+  const [promptText, setPromptText] = useState<string>("");
   const [uploadedImages, setUploadedImages] = useState<
     Array<{ id: string; name: string; previewUrl: string; file: File }>
   >([]);
   const uploadedImagesRef = useRef<Array<{ id: string; name: string; previewUrl: string; file: File }>>([]);
-
-  useEffect(() => {
-    setPromptText(generatedPrompt);
-  }, [generatedPrompt]);
 
   useEffect(() => {
     uploadedImagesRef.current = uploadedImages;
@@ -129,6 +123,25 @@ export default function WorkspacePage() {
       uploadedImagesRef.current.forEach((item) => URL.revokeObjectURL(item.previewUrl));
     };
   }, []);
+
+  useEffect(() => {
+    if (previewIndex === null) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setPreviewIndex(null);
+      }
+    };
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [previewIndex]);
 
   const onUploadImages = (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -182,7 +195,9 @@ export default function WorkspacePage() {
         },
         body: JSON.stringify({
           prompt: promptText,
+          platform: selectedPlatform,
           purpose: selectedPurpose,
+          promptEnhance,
           model,
           ratio,
           resolution,
@@ -276,16 +291,20 @@ export default function WorkspacePage() {
             {generatedImages.length > 0 ? (
               <div className="grid min-h-0 flex-1 gap-4 overflow-auto md:grid-cols-2 xl:grid-cols-3">
                 {generatedImages.map((imageUrl, index) => (
-                  <article
+                  <button
                     key={`${imageUrl.slice(0, 32)}-${index}`}
-                    className="overflow-hidden rounded-xl border border-white/10 bg-black/40 p-2"
+                    type="button"
+                    onClick={() => setPreviewIndex(index)}
+                    className="overflow-hidden rounded-xl border border-white/10 bg-black/40 p-2 text-left transition hover:border-white/25"
                   >
-                    <img
-                      src={imageUrl}
-                      alt={`Generated creative ${index + 1}`}
-                      className="h-full w-full rounded-lg object-cover"
-                    />
-                  </article>
+                    <div className="flex h-56 w-full items-center justify-center rounded-lg bg-black/30">
+                      <img
+                        src={imageUrl}
+                        alt={`Generated creative ${index + 1}`}
+                        className="max-h-full max-w-full object-contain"
+                      />
+                    </div>
+                  </button>
                 ))}
               </div>
             ) : (
@@ -389,6 +408,37 @@ export default function WorkspacePage() {
           </div>
         </div>
       </div>
+
+      {previewIndex !== null ? (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+          onClick={() => setPreviewIndex(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Image preview"
+        >
+          <div
+            className="relative w-full max-w-6xl rounded-2xl border border-white/10 bg-[#0a0d12] p-3"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setPreviewIndex(null)}
+              className="absolute right-3 top-3 inline-flex size-8 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-black/80"
+              aria-label="Close preview"
+            >
+              <X className="size-4" />
+            </button>
+            <div className="flex h-[78vh] items-center justify-center rounded-xl bg-black/30 p-3">
+              <img
+                src={generatedImages[previewIndex]}
+                alt={`Preview creative ${previewIndex + 1}`}
+                className="max-h-full max-w-full object-contain"
+              />
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
