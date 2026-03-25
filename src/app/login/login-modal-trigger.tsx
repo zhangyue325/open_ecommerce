@@ -14,6 +14,7 @@ type LoginModalTriggerProps = {
   variant?: "default" | "outline" | "secondary" | "ghost" | "destructive" | "link";
   size?: "default" | "xs" | "sm" | "lg" | "icon" | "icon-xs" | "icon-sm" | "icon-lg";
   className?: string;
+  onOpen?: () => void;
 };
 
 export default function LoginModalTrigger({
@@ -22,6 +23,7 @@ export default function LoginModalTrigger({
   variant = "default",
   size = "default",
   className,
+  onOpen,
 }: LoginModalTriggerProps) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -58,12 +60,15 @@ export default function LoginModalTrigger({
       <Button
         type="button"
         variant={variant}
-        size={size}
-        className={className}
-        onClick={() => setOpen(true)}
-      >
-        {label}
-      </Button>
+      size={size}
+      className={className}
+      onClick={() => {
+        onOpen?.();
+        setOpen(true);
+      }}
+    >
+      {label}
+    </Button>
 
       {open && mounted
         ? createPortal(
