@@ -17,12 +17,6 @@ function getPurposePrompt(
   return "";
 }
 
-const ALLOWED_IMAGE_MODELS = new Set([
-  "gemini-3-pro-image-preview",
-  "gemini-2.5-flash-image",
-  "gemini-3.1-flash-image-preview",
-]);
-
 export async function POST(req: Request) {
   try {
     const { prompt, platform, purpose, promptEnhance, model, ratio, resolution, numberOfCreatives, referenceImages } = (await req.json()) as {
@@ -45,10 +39,6 @@ export async function POST(req: Request) {
       return Response.json({ error: "Missing GEMINI_API_KEY" }, { status: 500 });
     }
 
-    const selectedModel =
-      model && ALLOWED_IMAGE_MODELS.has(model)
-        ? model
-        : "gemini-3.1-flash-image-preview";
     const creativeCount = Math.min(4, Math.max(1, Number(numberOfCreatives) || 1));
 
     const supabase = await createClient();
@@ -125,7 +115,7 @@ export async function POST(req: Request) {
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     const tasks = Array.from({ length: creativeCount }).map(async () => {
       const response = await ai.models.generateContent({
-        model: selectedModel,
+        model: model || "gemini-3.1-flash-image-preview",
         contents: [{ role: "user", parts: contentParts }],
         config: {
           responseModalities: ['TEXT', 'IMAGE'],

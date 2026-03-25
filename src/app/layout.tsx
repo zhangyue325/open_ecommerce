@@ -20,6 +20,7 @@ const spaceMono = Space_Mono({
 export const metadata: Metadata = {
   title: "Open Ecommerce",
   description: "Generate and refine brand images and videos with AI.",
+  metadataBase: new URL("https://opencommerce.io"),
 };
 
 export default function RootLayout({

@@ -4,45 +4,20 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Sparkles, X } from "lucide-react";
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 import WorkspaceComposerControls from "./workspace-composer-controls";
+import { getBuiltInPrompt, getPurposeSampleImageUrl } from "./purpose-prompts";
 import LoginModalTrigger from "../login/login-modal-trigger";
 import { createClient } from "../../../lib/supabase/client";
 
-const PLATFORM_OPTIONS = ["Google Ads", "Meta Ads", "Shopee", "Lazada", "Shopify"];
+const PLATFORM_OPTIONS = ["Google Ads", "Meta Ads"];
 const PLATFORM_PURPOSE_MAP: Record<string, string[]> = {
   "Google Ads": [
-    "Search Campaign Visual",
-    "Display Banner",
+    "Clean Product Shot",
+    "Shoes With Model Feet",
     "Performance Max Asset",
-    "YouTube Thumbnail",
-    "Retargeting Creative",
+    "Poster Style",
   ],
   "Meta Ads": [
-    "Feed Ad Creative",
-    "Story Placement",
-    "Reels Promo",
-    "Carousel Set",
-    "Lead Generation Ad",
-  ],
-  Shopee: [
-    "Main Product Image",
-    "Shopee Campaign Banner",
-    "Voucher Promotion Visual",
-    "Flash Sale Creative",
-    "Bundle Deal Image",
-  ],
-  Lazada: [
-    "Lazada Product Cover",
-    "Mega Campaign Banner",
-    "Store Decoration Visual",
-    "Voucher Callout",
-    "Collection Highlight",
-  ],
-  Shopify: [
-    "Homepage Hero",
-    "Collection Banner",
-    "Product Detail Visual",
-    "Email Campaign Graphic",
-    "Social Proof Creative",
+    "test",
   ],
 };
 
@@ -51,9 +26,8 @@ export default function WorkspacePage() {
   const purposeOptions = useMemo(() => {
     return PLATFORM_PURPOSE_MAP[selectedPlatform] ?? [];
   }, [selectedPlatform]);
-  const [selectedPurpose, setSelectedPurpose] = useState<string>(
-    PLATFORM_PURPOSE_MAP[PLATFORM_OPTIONS[0]]?.[0] ?? ""
-  );
+  const defaultPurpose = PLATFORM_PURPOSE_MAP[PLATFORM_OPTIONS[0]]?.[0] ?? "";
+  const [selectedPurpose, setSelectedPurpose] = useState<string>(defaultPurpose);
   const [model, setModel] = useState<string>("gemini-3.1-flash-image-preview");
   const [ratio, setRatio] = useState<string>("1:1");
   const [resolution, setResolution] = useState<string>("1K");
@@ -65,13 +39,24 @@ export default function WorkspacePage() {
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
+  const [promptText, setPromptText] = useState<string>(getBuiltInPrompt(defaultPurpose));
+  const sampleImage = getPurposeSampleImageUrl(selectedPurpose);
+  const displayedImages = generatedImages.length > 0 ? generatedImages : sampleImage ? [sampleImage] : [];
+  const isShowingSample = generatedImages.length === 0 && Boolean(sampleImage);
+  const creationsTitle = isGenerating ? "your images are generating..." : isShowingSample ? "Sample Image" : "Creations";
+
+  const onSelectPurpose = (purpose: string) => {
+    setSelectedPurpose(purpose);
+    setPromptText(getBuiltInPrompt(purpose));
+  };
+
   const onSelectPlatform = (platform: string) => {
     setSelectedPlatform(platform);
     const nextPurposes = PLATFORM_PURPOSE_MAP[platform] ?? [];
-    setSelectedPurpose((previous) => (nextPurposes.includes(previous) ? previous : nextPurposes[0] ?? ""));
+    const nextPurpose = nextPurposes[0] ?? "";
+    setSelectedPurpose(nextPurpose);
+    setPromptText(getBuiltInPrompt(nextPurpose));
   };
-
-  const [promptText, setPromptText] = useState<string>("");
   const [uploadedImages, setUploadedImages] = useState<
     Array<{ id: string; name: string; previewUrl: string; file: File }>
   >([]);
@@ -240,8 +225,6 @@ export default function WorkspacePage() {
 
       <div className="relative grid h-full w-full gap-4 px-3 py-3 lg:grid-cols-[280px_minmax(0,1fr)] lg:px-4">
         <aside className="flex h-full min-h-0 flex-col rounded-2xl border border-white/10 bg-[#0a0d12]/90 p-4">
-          <p className="text-xs tracking-[0.18em] text-zinc-400 uppercase">Generate</p>
-          <h2 className="mt-2 text-xl font-semibold text-white">Create Image</h2>
 
           <div className="mt-4 grid gap-2">
             {PLATFORM_OPTIONS.map((option) => (
@@ -267,7 +250,7 @@ export default function WorkspacePage() {
                 <button
                   key={option}
                   type="button"
-                  onClick={() => setSelectedPurpose(option)}
+                  onClick={() => onSelectPurpose(option)}
                   className={`w-full rounded-lg px-3 py-2 text-left text-sm transition ${
                     selectedPurpose === option
                       ? "bg-white text-black"
@@ -281,27 +264,29 @@ export default function WorkspacePage() {
           </div>
         </aside>
 
-        <div className="grid h-full min-h-0 gap-4 lg:grid-rows-[minmax(220px,0.42fr)_minmax(0,0.58fr)]">
+        <div className="grid h-full min-h-0 gap-4 lg:grid-rows-[minmax(280px,0.5fr)_minmax(0,0.5fr)]">
           <section className="flex min-h-0 flex-col rounded-2xl border border-white/10 bg-[#0a0d12]/90 p-4 md:p-5">
             <div className="mb-4 flex shrink-0 items-center justify-between">
-              <h4 className="text-base font-semibold text-white">Creations</h4>
-              <span className="text-xs text-zinc-400">{generatedImages.length} items</span>
+              <h4 className="text-base font-semibold text-white">{creationsTitle}</h4>
+              <span className="text-xs text-zinc-400">
+                {isGenerating ? "" : isShowingSample ? "Preview" : `${displayedImages.length} items`}
+              </span>
             </div>
 
-            {generatedImages.length > 0 ? (
-              <div className="grid min-h-0 flex-1 gap-4 overflow-auto md:grid-cols-2 xl:grid-cols-3">
-                {generatedImages.map((imageUrl, index) => (
+            {displayedImages.length > 0 ? (
+              <div className="flex min-h-0 flex-1 gap-4 overflow-auto">
+                {displayedImages.map((imageUrl, index) => (
                   <button
                     key={`${imageUrl.slice(0, 32)}-${index}`}
                     type="button"
                     onClick={() => setPreviewIndex(index)}
-                    className="overflow-hidden rounded-xl border border-white/10 bg-black/40 p-2 text-left transition hover:border-white/25"
+                    className="h-full w-1/4 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-black/40 text-left transition hover:border-white/25"
                   >
-                    <div className="flex h-56 w-full items-center justify-center rounded-lg bg-black/30">
+                    <div className="flex h-full w-full items-center justify-center bg-black/30">
                       <img
                         src={imageUrl}
                         alt={`Generated creative ${index + 1}`}
-                        className="max-h-full max-w-full object-contain"
+                        className="h-full w-full object-contain"
                       />
                     </div>
                   </button>
@@ -327,7 +312,7 @@ export default function WorkspacePage() {
                 value={promptText}
                 onChange={(event) => setPromptText(event.target.value)}
                 placeholder="Describe your creative idea. Example: premium product hero shot with soft shadows and clean white backdrop."
-                className="h-[140px] w-full resize-none border-none bg-transparent text-sm leading-relaxed text-zinc-100 outline-none placeholder:text-zinc-500 md:h-[170px] md:text-base"
+                className="h-[120px] w-full resize-none border-none bg-transparent text-sm leading-relaxed text-zinc-100 outline-none placeholder:text-zinc-500 md:h-[145px] md:text-base"
               />
             </div>
 
@@ -431,7 +416,7 @@ export default function WorkspacePage() {
             </button>
             <div className="flex h-[78vh] items-center justify-center rounded-xl bg-black/30 p-3">
               <img
-                src={generatedImages[previewIndex]}
+                src={displayedImages[previewIndex]}
                 alt={`Preview creative ${previewIndex + 1}`}
                 className="max-h-full max-w-full object-contain"
               />
