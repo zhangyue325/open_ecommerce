@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import LoginModalTrigger from "../login/login-modal-trigger";
+import SiteNavBar from "../components/site-nav-bar";
 
 const generationModes = [
   { id: "product_listing_images", label: "Product Listing Images", icon: Sparkles },
@@ -235,56 +236,9 @@ export default function LandingPage() {
         <div className="absolute right-0 top-1/3 h-72 w-72 rounded-full bg-cyan-500/20 blur-[120px]" />
       </div>
 
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-black/70 backdrop-blur-xl">
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-          <Link href="/landing" className="flex items-center gap-2.5">
-            <span className="inline-flex size-8 items-center justify-center rounded-full bg-gradient-to-br from-emerald-300 to-cyan-400 text-sm font-black text-black">
-              OE
-            </span>
-            <span className="text-sm font-semibold tracking-wide text-white">Open Ecommerce</span>
-          </Link>
+      <SiteNavBar />
 
-          {/* <nav className="hidden items-center gap-6 text-sm text-zinc-400 md:flex">
-            {sectionVisibility.suite ? (
-              <a href="#suite" className="transition-colors hover:text-white">
-                Suite
-              </a>
-            ) : null}
-            {sectionVisibility.models ? (
-              <a href="#models" className="transition-colors hover:text-white">
-                Models
-              </a>
-            ) : null}
-            {sectionVisibility.inspiration ? (
-              <a href="#inspiration" className="transition-colors hover:text-white">
-                Inspiration
-              </a>
-            ) : null}
-            {sectionVisibility.pricing ? (
-              <a href="#pricing" className="transition-colors hover:text-white">
-                Pricing
-              </a>
-            ) : null}
-          </nav> */}
-
-          <div className="flex items-center gap-2">
-            <LoginModalTrigger
-              label="Login"
-              variant="outline"
-              size="sm"
-              className="border-white/20 bg-white/0 text-white hover:bg-white/10"
-            />
-            <LoginModalTrigger
-              label="Start for Free"
-              nextPath="/template"
-              size="sm"
-              className="bg-emerald-400 px-3 font-semibold text-black hover:bg-emerald-300"
-            />
-          </div>
-        </div>
-      </header>
-
-      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-16 pt-24 sm:px-6 lg:px-8">
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-16 pt-10 sm:px-6 lg:px-8">
         <section className="reveal-up text-center">
           <p className="mx-auto inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-3 py-1 text-xs font-medium tracking-[0.18em] text-zinc-300 uppercase">
             Built for ecommerce creative teams

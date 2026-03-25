@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Sparkles, X } from "lucide-react";
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 import WorkspaceComposerControls from "./workspace-composer-controls";
@@ -217,144 +217,177 @@ export default function WorkspacePage() {
   };
 
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-[#d8dbe1] bg-[#eceef2] px-5 pb-10 pt-8 md:px-10 md:pb-14 md:pt-10">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(70%_100%_at_50%_0%,rgba(255,255,255,0.55),rgba(255,255,255,0))]" />
+    <section className="relative h-full overflow-hidden bg-[#050608] text-white">
+      <div className="pointer-events-none absolute inset-0" aria-hidden>
+        <div className="absolute -left-20 top-10 h-72 w-72 rounded-full bg-emerald-500/15 blur-[120px]" />
+        <div className="absolute right-0 top-1/3 h-80 w-80 rounded-full bg-cyan-500/10 blur-[140px]" />
+      </div>
 
-      <div className="relative mx-auto flex w-full max-w-5xl flex-col items-center">
-        <div className="w-full max-w-4xl rounded-2xl border border-[#d3d7de] bg-white/80 p-4 shadow-[0_8px_20px_rgba(17,22,32,0.06)] backdrop-blur md:p-5">
-          <div className="grid gap-4 md:grid-cols-2">
-            <SelectionGroup title="Platform">
-              {PLATFORM_OPTIONS.map((option) => (
-                <ChoiceChip
-                  key={option}
-                  active={selectedPlatform === option}
-                  onClick={() => onSelectPlatform(option)}
-                >
-                  {option}
-                </ChoiceChip>
-              ))}
-            </SelectionGroup>
+      <div className="relative grid h-full w-full gap-4 px-3 py-3 lg:grid-cols-[280px_minmax(0,1fr)] lg:px-4">
+        <aside className="flex h-full min-h-0 flex-col rounded-2xl border border-white/10 bg-[#0a0d12]/90 p-4">
+          <p className="text-xs tracking-[0.18em] text-zinc-400 uppercase">Generate</p>
+          <h2 className="mt-2 text-xl font-semibold text-white">Create Image</h2>
 
-            <SelectionGroup title="Purpose">
-              {purposeOptions.map((option) => (
-                <ChoiceChip
-                  key={option}
-                  active={selectedPurpose === option}
-                  onClick={() => setSelectedPurpose(option)}
-                >
-                  {option}
-                </ChoiceChip>
-              ))}
-            </SelectionGroup>
+          <div className="mt-4 grid gap-2">
+            {PLATFORM_OPTIONS.map((option) => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => onSelectPlatform(option)}
+                className={`w-full rounded-xl border px-3 py-2 text-left text-sm transition ${
+                  selectedPlatform === option
+                    ? "border-emerald-300/45 bg-emerald-400/10 text-white"
+                    : "border-white/10 bg-white/5 text-zinc-300 hover:bg-white/10"
+                }`}
+              >
+                {option}
+              </button>
+            ))}
           </div>
-        </div>
 
-        <div className="relative mt-4 w-full rounded-[26px] border border-[#d3d7de] bg-[#f6f7f8] p-4 shadow-[0_8px_20px_rgba(17,22,32,0.08)] md:p-6">
-          <div className="flex items-start gap-4">
-            <div className="flex min-h-[94px] flex-1 items-start">
+          <div className="mt-5 flex min-h-0 flex-1 flex-col border-t border-white/10 pt-4">
+            <p className="text-xs tracking-[0.14em] text-zinc-400 uppercase">Purpose</p>
+            <div className="mt-3 min-h-0 flex-1 space-y-1.5 overflow-y-auto pr-1">
+              {purposeOptions.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setSelectedPurpose(option)}
+                  className={`w-full rounded-lg px-3 py-2 text-left text-sm transition ${
+                    selectedPurpose === option
+                      ? "bg-white text-black"
+                      : "text-zinc-300 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+        </aside>
+
+        <div className="grid h-full min-h-0 gap-4 lg:grid-rows-[minmax(220px,0.42fr)_minmax(0,0.58fr)]">
+          <section className="flex min-h-0 flex-col rounded-2xl border border-white/10 bg-[#0a0d12]/90 p-4 md:p-5">
+            <div className="mb-4 flex shrink-0 items-center justify-between">
+              <h4 className="text-base font-semibold text-white">Creations</h4>
+              <span className="text-xs text-zinc-400">{generatedImages.length} items</span>
+            </div>
+
+            {generatedImages.length > 0 ? (
+              <div className="grid min-h-0 flex-1 gap-4 overflow-auto md:grid-cols-2 xl:grid-cols-3">
+                {generatedImages.map((imageUrl, index) => (
+                  <article
+                    key={`${imageUrl.slice(0, 32)}-${index}`}
+                    className="overflow-hidden rounded-xl border border-white/10 bg-black/40 p-2"
+                  >
+                    <img
+                      src={imageUrl}
+                      alt={`Generated creative ${index + 1}`}
+                      className="h-full w-full rounded-lg object-cover"
+                    />
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="flex min-h-0 flex-1 items-center justify-center rounded-xl border border-dashed border-white/15 bg-black/20 px-4 py-12 text-center text-sm text-zinc-400">
+                Your generated creatives will appear here.
+              </div>
+            )}
+          </section>
+
+          <div className="min-h-0 overflow-auto rounded-2xl border border-white/10 bg-[#0a0d12]/90 p-4 md:p-6">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="space-y-1">
+                <p className="text-sm text-zinc-400">Creating for {selectedPlatform}</p>
+                <h3 className="text-lg font-semibold text-white">{selectedPurpose || "Select a purpose"}</h3>
+              </div>
+            </div>
+
+            <div className="mt-4 rounded-xl border border-white/10 bg-black/25 p-3">
               <textarea
                 value={promptText}
                 onChange={(event) => setPromptText(event.target.value)}
-                placeholder="Create any design with AI - product photos, posters, and more..."
-                className="h-[140px] w-full resize-none border-none bg-transparent text-base leading-relaxed text-[#616571] outline-none placeholder:text-[#8b909c] md:h-[160px] md:text-[22px] md:leading-[1.35]"
+                placeholder="Describe your creative idea. Example: premium product hero shot with soft shadows and clean white backdrop."
+                className="h-[140px] w-full resize-none border-none bg-transparent text-sm leading-relaxed text-zinc-100 outline-none placeholder:text-zinc-500 md:h-[170px] md:text-base"
               />
             </div>
-          </div>
 
-          {uploadedImages.length > 0 ? (
-            <div className="mb-2 mt-2 flex flex-wrap gap-3">
-              {uploadedImages.map((item) => (
-                <div
-                  key={item.id}
-                  className="group relative h-16 w-16 overflow-hidden rounded-lg border border-[#d3d7de] bg-white"
-                  title={item.name}
-                >
-                  <img src={item.previewUrl} alt={item.name} className="h-full w-full object-cover" />
+            {uploadedImages.length > 0 ? (
+              <div className="mt-3 flex flex-wrap gap-3">
+                {uploadedImages.map((item) => (
+                  <div
+                    key={item.id}
+                    className="group relative h-16 w-16 overflow-hidden rounded-lg border border-white/15 bg-black/40"
+                    title={item.name}
+                  >
+                    <img src={item.previewUrl} alt={item.name} className="h-full w-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => onRemoveImage(item.id)}
+                      className="absolute right-1 top-1 inline-flex size-5 items-center justify-center rounded-full bg-black/65 text-white opacity-0 transition group-hover:opacity-100"
+                      aria-label={`Remove ${item.name}`}
+                    >
+                      <X className="size-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
+            <div className="mt-4 flex flex-wrap items-end justify-between gap-3">
+              <WorkspaceComposerControls
+                model={model}
+                ratio={ratio}
+                resolution={resolution}
+                promptEnhance={promptEnhance}
+                batchSize={batchSize}
+                onChangeModel={setModel}
+                onChangeRatio={setRatio}
+                onChangeResolution={setResolution}
+                onChangePromptEnhance={setPromptEnhance}
+                onChangeBatchSize={setBatchSize}
+                onUploadImages={onUploadImages}
+              />
+
+              <div className="flex items-center gap-3">
+                <ChevronDown className="hidden size-4 text-zinc-500 md:block" />
+                {isAuthenticated === null ? (
                   <button
                     type="button"
-                    onClick={() => onRemoveImage(item.id)}
-                    className="absolute right-1 top-1 inline-flex size-5 items-center justify-center rounded-full bg-black/65 text-white opacity-0 transition group-hover:opacity-100"
-                    aria-label={`Remove ${item.name}`}
+                    disabled
+                    className="inline-flex h-11 items-center gap-2 rounded-full bg-[#181b22]/80 px-5 text-sm font-semibold text-white"
                   >
-                    <X className="size-3.5" />
+                    <Sparkles className="size-4" />
+                    Checking...
                   </button>
-                </div>
-              ))}
-            </div>
-          ) : null}
-
-          <div className="mt-4 flex items-end justify-between gap-3">
-            <WorkspaceComposerControls
-              model={model}
-              ratio={ratio}
-              resolution={resolution}
-              promptEnhance={promptEnhance}
-              batchSize={batchSize}
-              onChangeModel={setModel}
-              onChangeRatio={setRatio}
-              onChangeResolution={setResolution}
-              onChangePromptEnhance={setPromptEnhance}
-              onChangeBatchSize={setBatchSize}
-              onUploadImages={onUploadImages}
-            />
-
-            <div className="flex items-center gap-3">
-              <ChevronDown className="hidden size-4 text-[#c0c5cd] md:block" />
-              {isAuthenticated === null ? (
-                <button
-                  type="button"
-                  disabled
-                  className="inline-flex h-11 items-center gap-2 rounded-full bg-[#181b22]/80 px-5 text-sm font-semibold text-white"
-                >
-                  <Sparkles className="size-4" />
-                  Checking...
-                </button>
-              ) : isAuthenticated ? (
-                <button
-                  type="button"
-                  onClick={onGenerate}
-                  disabled={isGenerating}
-                  className="inline-flex h-11 items-center gap-2 rounded-full bg-[#181b22] px-5 text-sm font-semibold text-white transition hover:bg-[#232734]"
-                >
-                  <Sparkles className="size-4" />
-                  {isGenerating ? "Generating..." : "Generate"}
-                </button>
-              ) : (
-                <LoginModalTrigger
-                  label={
-                    <span className="inline-flex items-center gap-2">
-                      <Sparkles className="size-4" />
-                      Generate
-                    </span>
-                  }
-                  nextPath="/workspace"
-                  className="h-11 rounded-full bg-[#181b22] px-5 text-sm font-semibold text-white transition hover:bg-[#232734]"
-                />
-              )}
-            </div>
-          </div>
-
-          {error ? (
-            <p className="mt-4 text-sm text-[#a14444]">{error}</p>
-          ) : null}
-        </div>
-
-        {generatedImages.length > 0 ? (
-          <div className="mt-6 grid w-full gap-4 md:grid-cols-2">
-            {generatedImages.map((imageUrl, index) => (
-              <div
-                key={`${imageUrl.slice(0, 32)}-${index}`}
-                className="overflow-hidden rounded-2xl border border-[#d3d7de] bg-white p-2 shadow-[0_8px_20px_rgba(17,22,32,0.06)]"
-              >
-                <img
-                  src={imageUrl}
-                  alt={`Generated creative ${index + 1}`}
-                  className="h-full w-full rounded-xl object-cover"
-                />
+                ) : isAuthenticated ? (
+                  <button
+                    type="button"
+                    onClick={onGenerate}
+                    disabled={isGenerating}
+                    className="inline-flex h-11 items-center gap-2 rounded-full bg-emerald-400 px-5 text-sm font-semibold text-black transition hover:bg-emerald-300"
+                  >
+                    <Sparkles className="size-4" />
+                    {isGenerating ? "Generating..." : "Generate"}
+                  </button>
+                ) : (
+                  <LoginModalTrigger
+                    label={
+                      <span className="inline-flex items-center gap-2">
+                        <Sparkles className="size-4" />
+                        Generate
+                      </span>
+                    }
+                    nextPath="/workspace"
+                    className="h-11 rounded-full bg-emerald-400 px-5 text-sm font-semibold text-black transition hover:bg-emerald-300"
+                  />
+                )}
               </div>
-            ))}
+            </div>
+
+            {error ? <p className="mt-4 text-sm text-rose-300">{error}</p> : null}
           </div>
-        ) : null}
+        </div>
       </div>
     </section>
   );
@@ -370,44 +403,4 @@ async function fileToBase64(file: File) {
   });
 
   return btoa(binary);
-}
-
-function SelectionGroup({
-  title,
-  children,
-}: {
-  title: string;
-  children: ReactNode;
-}) {
-  return (
-    <section className="rounded-xl border border-[#e2e5ea] bg-[#f6f7f9] p-3">
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#737985]">{title}</p>
-      <div className="flex flex-wrap gap-2">{children}</div>
-    </section>
-  );
-}
-
-function ChoiceChip({
-  active,
-  children,
-  onClick,
-}: {
-  active: boolean;
-  children: ReactNode;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`rounded-full border px-3 py-1.5 text-sm transition ${
-        active
-          ? "border-[#2b2f38] bg-[#2b2f38] text-white"
-          : "border-[#d4d8df] bg-white text-[#3d4250] hover:bg-[#eff1f4]"
-      }`}
-      aria-pressed={active}
-    >
-      {children}
-    </button>
-  );
 }

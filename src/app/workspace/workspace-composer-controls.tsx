@@ -65,13 +65,13 @@ export default function WorkspaceComposerControls({
         type="button"
         onClick={() => uploadInputRef.current?.click()}
         title="Upload images"
-        className="inline-flex size-10 items-center justify-center rounded-xl border border-[#d3d7de] bg-white text-[#687084] transition hover:bg-[#eef1f5]"
+        className="inline-flex size-10 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-zinc-300 transition hover:bg-white/10"
       >
         <ImagePlus className="size-4" />
       </button>
 
       <SelectPill
-        icon={<WandSparkles className="size-3.5 text-[#4a596e]" />}
+        icon={<WandSparkles className="size-3.5 text-zinc-300" />}
         label={modelLabel}
         value={model}
         options={MODEL_OPTIONS}
@@ -79,7 +79,7 @@ export default function WorkspaceComposerControls({
       />
 
       <SelectPill
-        icon={<Crop className="size-3.5 text-[#5f6778]" />}
+        icon={<Crop className="size-3.5 text-zinc-300" />}
         label={ratio}
         value={ratio}
         options={RATIO_OPTIONS}
@@ -87,7 +87,7 @@ export default function WorkspaceComposerControls({
       />
 
       <SelectPill
-        icon={<Gem className="size-3.5 text-[#5f6778]" />}
+        icon={<Gem className="size-3.5 text-zinc-300" />}
         label={resolutionLabel}
         value={resolution}
         options={RESOLUTION_OPTIONS.map((option) => option.value)}
@@ -102,8 +102,8 @@ export default function WorkspaceComposerControls({
         onClick={() => onChangePromptEnhance(!promptEnhance)}
         className={`inline-flex h-10 items-center gap-2 rounded-xl border px-3 text-sm font-medium transition ${
           promptEnhance
-            ? "border-[#b9d78a] bg-[#f1f9e4] text-[#3f6120]"
-            : "border-[#d3d7de] bg-white text-[#596072] hover:bg-[#eef1f5]"
+            ? "border-emerald-300/45 bg-emerald-400/10 text-emerald-200"
+            : "border-white/15 bg-white/5 text-zinc-300 hover:bg-white/10"
         }`}
       >
         <Sparkles className="size-3.5" />
@@ -129,10 +129,10 @@ function SelectPill({
   onChange: (value: string) => void;
 }) {
   return (
-    <label className="relative inline-flex h-10 items-center gap-2 rounded-xl border border-[#d3d7de] bg-white px-3 text-sm text-[#50596d] transition hover:bg-[#eef1f5]">
+    <label className="relative inline-flex h-10 items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 text-sm text-zinc-200 transition hover:bg-white/10">
       <span className="shrink-0">{icon}</span>
       <span className="max-w-28 truncate">{label}</span>
-      <ChevronDown className="size-3.5 text-[#9098a8]" />
+      <ChevronDown className="size-3.5 text-zinc-500" />
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
@@ -165,11 +165,11 @@ function BatchPill({
   const onIncrease = () => onChangeBatchSize(Math.min(4, batchSize + 1));
 
   return (
-    <div className="inline-flex h-10 items-center gap-2 rounded-xl border border-[#d3d7de] bg-white px-2 text-sm text-[#4f586b]">
+    <div className="inline-flex h-10 items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-2 text-sm text-zinc-200">
       <button
         type="button"
         onClick={onDecrease}
-        className="inline-flex size-7 items-center justify-center rounded-md text-[#7f8899] transition hover:bg-[#eef1f5] hover:text-[#2f3542]"
+        className="inline-flex size-7 items-center justify-center rounded-md text-zinc-400 transition hover:bg-white/10 hover:text-white"
         aria-label="Decrease batch size"
       >
         <Minus className="size-3.5" />
@@ -178,7 +178,7 @@ function BatchPill({
       <button
         type="button"
         onClick={onIncrease}
-        className="inline-flex size-7 items-center justify-center rounded-md text-[#7f8899] transition hover:bg-[#eef1f5] hover:text-[#2f3542]"
+        className="inline-flex size-7 items-center justify-center rounded-md text-zinc-400 transition hover:bg-white/10 hover:text-white"
         aria-label="Increase batch size"
       >
         <Plus className="size-3.5" />
