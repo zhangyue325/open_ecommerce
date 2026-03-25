@@ -2,13 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowRight,
-  Clapperboard,
-  ImageIcon,
-  Shirt,
   Sparkles,
-  Store,
   WandSparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -16,11 +13,10 @@ import LoginModalTrigger from "../login/login-modal-trigger";
 import SiteNavBar from "../components/site-nav-bar";
 
 const generationModes = [
-  { id: "product_listing_images", label: "Product Listing Images", icon: Sparkles },
-  { id: "paid_ads", label: "Paid Ads", icon: Clapperboard },
-  { id: "instagram", label: "Instagram", icon: ImageIcon },
-  { id: "tiktok", label: "TikTok", icon: Shirt },
-  { id: "email_marketing", label: "Email Marketing", icon: Store },
+  { id: "google_ads", label: "Google Ads", logo: "/logo/platform-google-ads.svg" },
+  { id: "meta_ads", label: "Meta Ads", logo: "/logo/platform-meta.svg" },
+  { id: "instagram", label: "Instagram", logo: "/logo/platform-instagram.svg" },
+  { id: "tiktok", label: "TikTok", logo: "/logo/platform-tiktok.svg" },
 ] as const;
 
 type GenerationModeId = (typeof generationModes)[number]["id"];
@@ -33,103 +29,83 @@ type FeaturedCard = {
 };
 
 const featuredCards: Record<GenerationModeId, FeaturedCard[]> = {
-  product_listing_images: [
+  google_ads: [
     {
-      title: "Studio level product images",
-      description: "convert your raw product image to studio level product images for Amazon, Shopee, Lazada, and so on.",
-      image: "https://picsum.photos/seed/opencommerce-feature-product-listing-1/1400/900",
+      title: "Turn plain packshots into conversion-ready product ads",
+      description: "Generate polished Google Ads creatives with clean lighting, premium composition, and space for high-performing headlines.",
+      image: "/clean_product_shot.png",
       className: "lg:col-span-6",
     },
     {
-      title: "Packshot variants by angle and colorway",
-      description: "",
-      image: "https://picsum.photos/seed/opencommerce-feature-product-listing-2/900/900",
+      title: "Performance Max layouts built for scale",
+      description: "Create campaign assets that look native across Search, Display, and shopping placements without redesigning each format by hand.",
+      image: "/performance_max_asset.png",
       className: "lg:col-span-3",
     },
     {
-      title: "Marketplace-safe white background set",
-      description: "",
-      image: "https://picsum.photos/seed/opencommerce-feature-product-listing-3/900/900",
+      title: "Poster-style concepts for stronger click intent",
+      description: "Push beyond flat catalog visuals with bold campaign art direction that still keeps the product clear and shoppable.",
+      image: "/poster_style.png",
       className: "lg:col-span-3",
     },
   ],
-  paid_ads: [
+  meta_ads: [
     {
-      title: "Build your spring launch campaign in one click",
-      description: "From hero banners to paid social creatives",
-      image: "https://picsum.photos/seed/opencommerce-feature-paid-ads-1/1400/900",
+      title: "Launch Meta campaigns with scroll-stopping creative angles",
+      description: "Generate paid social images that feel native to the feed while staying structured for product-first performance marketing.",
+      image: "/scroll_stopper.png",
       className: "lg:col-span-6",
     },
     {
-      title: "AI model of the week: Lifestyle Studio",
-      description: "Perfect for skincare, supplements, and beauty",
-      image: "https://picsum.photos/seed/opencommerce-feature-paid-ads-2/900/900",
+      title: "Lifestyle scenes that feel polished, not generic",
+      description: "Blend product focus with human context so ads feel premium, believable, and ready for broad audience testing.",
+      image: "/shoes_with_model_feet.png",
       className: "lg:col-span-3",
     },
     {
-      title: "Unlimited product shots in 4K",
-      description: "Zero photoshoot logistics",
-      image: "https://picsum.photos/seed/opencommerce-feature-paid-ads-3/900/900",
+      title: "Hook-first ad concepts for faster iteration",
+      description: "Test visual hooks, emotional framing, and offer-led compositions without booking another shoot.",
+      image: "/emotional_hook.png",
       className: "lg:col-span-3",
     },
   ],
   instagram: [
     {
-      title: "Create cohesive IG carousel drops instantly",
-      description: "Generate branded posts and story assets in matching visual style",
-      image: "https://picsum.photos/seed/opencommerce-feature-instagram-1/1400/900",
+      title: "Create Instagram drops with one consistent visual language",
+      description: "Generate feed posts, launch creatives, and hero visuals that feel cohesive across every touchpoint of the campaign.",
+      image: "/poster_style.png",
       className: "lg:col-span-6",
     },
     {
-      title: "Lifestyle influencer scene presets",
-      description: "Fashion, beauty, and home decor-ready aesthetics",
-      image: "https://picsum.photos/seed/opencommerce-feature-instagram-2/900/900",
+      title: "Lifestyle imagery designed for saves and shares",
+      description: "Build aspirational brand moments with cleaner framing, stronger product styling, and a more editorial finish.",
+      image: "/shoes_with_model_feet.png",
       className: "lg:col-span-3",
     },
     {
-      title: "Story-first crop and text-safe framing",
-      description: "No more manual resizing between feed and story",
-      image: "https://picsum.photos/seed/opencommerce-feature-instagram-3/900/900",
+      title: "Story-friendly compositions without manual rework",
+      description: "Keep text-safe spacing, strong visual focus, and mobile-first layouts built for Instagram-native content.",
+      image: "/scroll_stopper.png",
       className: "lg:col-span-3",
     },
   ],
   tiktok: [
     {
-      title: "Turn a product image into TikTok ad creatives",
-      description: "Generate hook-first scenes and short-form concepts quickly",
-      image: "https://picsum.photos/seed/opencommerce-feature-tiktok-1/1400/900",
+      title: "Generate TikTok ad concepts with immediate thumb-stop energy",
+      description: "Start from one product image and turn it into bold, motion-ready frames built for fast-paced short-form campaigns.",
+      image: "/emotional_hook.png",
       className: "lg:col-span-6",
     },
     {
-      title: "UGC-style product presenter concepts",
-      description: "Fast variations for testing top-performing hooks",
-      image: "https://picsum.photos/seed/opencommerce-feature-tiktok-2/900/900",
+      title: "UGC-inspired visuals without a full creator shoot",
+      description: "Mock up creator-style product moments that feel casual, persuasive, and made for paid social testing.",
+      image: "/shoes_with_model_feet.png",
       className: "lg:col-span-3",
     },
     {
-      title: "9:16 motion-ready ad layouts",
-      description: "Designed for mobile-first attention",
-      image: "https://picsum.photos/seed/opencommerce-feature-tiktok-3/900/900",
-      className: "lg:col-span-3",
-    },
-  ],
-  email_marketing: [
-    {
-      title: "Email banner packs for every campaign",
-      description: "Generate hero, offer, and product spotlight visuals together",
-      image: "https://picsum.photos/seed/opencommerce-feature-email-1/1400/900",
-      className: "lg:col-span-6",
-    },
-    {
-      title: "Brand-safe seasonal template variations",
-      description: "Holiday, launch, and retention flows in one visual system",
-      image: "https://picsum.photos/seed/opencommerce-feature-email-2/900/900",
-      className: "lg:col-span-3",
-    },
-    {
-      title: "Optimized layouts for desktop and mobile",
-      description: "Consistent creative quality across inbox clients",
-      image: "https://picsum.photos/seed/opencommerce-feature-email-3/900/900",
+      title: "9:16 compositions made for mobile performance",
+      description: "Frame the product, headline area, and action cues for vertical creatives that can later expand into video workflows.",
+      image: "/performance_max_asset.png",
       className: "lg:col-span-3",
     },
   ],
@@ -202,18 +178,11 @@ const modelCards = [
 ];
 
 const inspirationCards = [
-  { title: "Skincare Hero Shot", image: "https://picsum.photos/seed/opencommerce-inspo-1/900/1200", size: "h-60" },
-  { title: "Shoes UGC Frame", image: "https://picsum.photos/seed/opencommerce-inspo-2/900/1100", size: "h-72" },
-  { title: "Kitchen Product Story", image: "https://picsum.photos/seed/opencommerce-inspo-3/900/1000", size: "h-52" },
-  { title: "Perfume Cinematic", image: "https://picsum.photos/seed/opencommerce-inspo-4/900/1300", size: "h-80" },
-  { title: "Fashion Drop Poster", image: "https://picsum.photos/seed/opencommerce-inspo-5/900/1200", size: "h-64" },
-  { title: "DTC Ad Concept", image: "https://picsum.photos/seed/opencommerce-inspo-6/900/1100", size: "h-56" },
-  { title: "Cosmetic Flat Lay", image: "https://picsum.photos/seed/opencommerce-inspo-7/900/1000", size: "h-48" },
-  { title: "Home Decor Carousel", image: "https://picsum.photos/seed/opencommerce-inspo-8/900/1300", size: "h-80" },
-  { title: "Bag Lifestyle Video", image: "https://picsum.photos/seed/opencommerce-inspo-9/900/1200", size: "h-60" },
-  { title: "Snack Brand Packshot", image: "https://picsum.photos/seed/opencommerce-inspo-10/900/900", size: "h-44" },
-  { title: "Dropshipping Hero", image: "https://picsum.photos/seed/opencommerce-inspo-11/900/1000", size: "h-52" },
-  { title: "Organic Product Launch", image: "https://picsum.photos/seed/opencommerce-inspo-12/900/1300", size: "h-72" },
+  { title: "Scroll Stopper", image: "/scroll_stopper.png", size: "h-135" },
+  { title: "Clean Product Shot", image: "/clean_product_shot.png", size: "h-70" },
+  { title: "Emotional Hook", image: "/emotional_hook.png", size: "h-135" },
+
+
 ];
 
 const sectionVisibility = {
@@ -273,7 +242,6 @@ export default function LandingPage() {
 
           <div className="mt-7 mx-auto flex w-full max-w-5xl snap-x snap-mandatory justify-start gap-2 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:justify-center">
             {generationModes.map((mode) => {
-              const Icon = mode.icon;
               const isActive = mode.id === activeMode;
               return (
                 <button
@@ -288,7 +256,13 @@ export default function LandingPage() {
                       : "border-white/15 bg-white/5 text-zinc-200 hover:border-emerald-300/45 hover:bg-white/10"
                   )}
                 >
-                  <Icon className={cn("size-4", isActive ? "text-emerald-200" : "text-emerald-300")} />
+                  <Image
+                    src={mode.logo}
+                    alt={`${mode.label} logo`}
+                    width={16}
+                    height={16}
+                    className="size-4 object-contain"
+                  />
                   {mode.label}
                 </button>
               );

@@ -61,10 +61,73 @@ Only the model has a rectangle background, the product and tagline should use th
 Display the product again as a secondary floating beside the model to highlight design details.`,
     sampleImageUrl: "/poster_style.png",
   },
-  test: {
-    prompt: "test purpose prompt",
-    sampleImageUrl: DUMMY_SAMPLE_IMAGE_URL,
+  "Emotional Hook": {
+    prompt: `tagline: Valentine's Day Promotion
+call-to-action button: SHOP NOW
+
+product layout: Product worn on model (natural lifestyle context, not isolated).
+logo layout: Place the provided brand logo subtly at the bottom or blended into the scene.
+tagline layout: Large, bold, eye-catching at top or center.
+call-to-action layout: Native-style button, slightly rounded, high contrast.
+
+Scene:
+Show a candid, lifestyle moment (e.g., walking on the street, cafe, date setting, soft urban background).
+Focus on movement (walking step, slight motion blur, natural pose).
+
+Lighting:
+Golden hour or soft natural light for warmth and emotional appeal.
+
+Composition:
+Vertical-friendly.
+Tight framing — optimized for mobile scrolling.
+Keep clear focal point on the shoes.
+
+Background:
+Slightly blurred (depth of field) to emphasize product.
+
+Mood:
+Emotional, relatable, aspirational — like a real Instagram post.
+
+Overall aesthetic:
+Social-first, authentic, lifestyle-driven, designed to blend into feed but still stand out.`,
+    sampleImageUrl: "/emotional_hook.png",
   },
+  "Scroll Stopper": {
+    prompt: `tagline: Black Friday Sale
+sub-tagline: Biggest Sale of the Year
+call-to-action button: SHOP NOW
+
+
+product layout: Large hero product, slightly angled or floating.
+logo layout: Small but sharp, placed top or bottom corner.
+tagline layout: Big, bold typography, high contrast.
+call-to-action layout: Strong button with high contrast (black or red).
+
+Scene:
+Minimal but bold composition with strong visual contrast.
+Use a clean background but with a striking element (gradient, shadow, or abstract shape).
+
+Lighting:
+High contrast lighting with defined shadows to create depth and drama.
+
+Composition:
+Close-up crop — product fills 60-80% of frame.
+Optimized for mobile feed visibility.
+
+Background:
+Solid color or gradient (e.g., soft pink, deep red, beige).
+Optional subtle texture or shadow to avoid flatness.
+
+Enhancements:
+Add subtle motion elements (floating particles, light streaks, or soft glow).
+
+Mood:
+Confident, premium, attention-grabbing.
+
+Overall aesthetic:
+Scroll-stopping, bold, performance-driven creative optimized for conversions.`,
+    sampleImageUrl: "/scroll_stopper.png",
+  }
 };
 
 export function getBuiltInPrompt(purpose: string) {
