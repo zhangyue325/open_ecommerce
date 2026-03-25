@@ -8,17 +8,34 @@ import { getBuiltInPrompt, getPurposeSampleImageUrl } from "./purpose-prompts";
 import LoginModalTrigger from "../login/login-modal-trigger";
 import { createClient } from "../../../lib/supabase/client";
 
-const PLATFORM_OPTIONS = ["Meta Ads", "Google Ads"];
+const PLATFORM_OPTIONS = ["Meta Ads", "Google Ads", "Instagram Post"];
 const PLATFORM_PURPOSE_MAP: Record<string, string[]> = {
   "Google Ads": [
     "Clean Product Shot",
+    "Catalog White Background",
+    "Luxury Studio Spotlight",
     "Shoes With Model Feet",
     "Performance Max Asset",
     "Poster Style",
+    "Bundle Offer Visual",
+    "Benefit Callout Ad",
   ],
   "Meta Ads": [
     "Emotional Hook",
-    "Scroll Stopper"
+    "Scroll Stopper",
+    "Founder Story Visual",
+    "UGC Testimonial Frame",
+    "Promo Countdown Banner",
+    "New Arrival Launch",
+    "Comparison Showcase",
+  ],
+  "Instagram Post": [
+    "Instagram Carousel Cover",
+    "Instagram Quote Post",
+    "Instagram Product Flat Lay",
+    "Instagram Lifestyle Post",
+    "Instagram Promo Graphic",
+    "Instagram UGC Style Post",
   ],
 };
 

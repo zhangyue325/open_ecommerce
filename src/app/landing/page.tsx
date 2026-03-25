@@ -210,17 +210,17 @@ export default function LandingPage() {
       <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-16 pt-10 sm:px-6 lg:px-8">
         <section className="reveal-up text-center">
           <p className="mx-auto inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-3 py-1 text-xs font-medium tracking-[0.18em] text-zinc-300 uppercase">
-            Built for ecommerce creative teams
+            Built for e-commerce 🛍️
           </p>
           <h1 className="mx-auto mt-5 max-w-4xl text-balance text-4xl font-semibold leading-tight tracking-[-0.03em] text-white md:text-6xl">
             What would you like to{" "}
             <span className="bg-gradient-to-r from-emerald-300 via-cyan-300 to-sky-300 bg-clip-text text-transparent">
-              launch
+              sale
             </span>{" "}
             today?
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-zinc-300 md:text-base">
-            Generate product photos, ecommerce videos, paid social creatives, and storefront scenes from one prompt.
+            Your home for ecommerce AI-generated creatives
           </p>
 
           <div className="mt-6 flex flex-wrap items-center justify-center gap-2">

@@ -11,3 +11,9 @@ who we are?
 highlights
  - prebuilt prompt templates consistant with your brand guidance
  - 
+
+
+to do
+- have video gen
+- generate tiktok and ig templates
+- allow user to create his own template

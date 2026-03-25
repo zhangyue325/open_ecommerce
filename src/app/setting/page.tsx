@@ -1,6 +1,7 @@
-﻿"use client";
+"use client";
 
-import { useState, useEffect, useMemo, type FormEvent, type ReactNode } from "react";
+import { useState, useEffect, type FormEvent, type ReactNode } from "react";
+import type { AuthChangeEvent, Session, User } from "@supabase/supabase-js";
 
 import { createClient } from "../../../lib/supabase/client";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -14,18 +15,13 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { ChevronDownIcon } from "lucide-react";
-
-type PurposePromptItem = {
-  id: string;
-  name: string;
-  prompt: string;
-};
+import { Globe, Sparkles } from "lucide-react";
+import LoginModalTrigger from "../login/login-modal-trigger";
+import SiteNavBar from "../components/site-nav-bar";
 
 type SettingRecord = {
   id: number;
@@ -60,16 +56,6 @@ const SAMPLE_STORAGE_FOLDER = "sample-image";
 const LOGO_STORAGE_BUCKET = "template";
 const LOGO_STORAGE_FOLDER = "logo";
 
-function toPurposeItems(value: unknown): PurposePromptItem[] {
-  const source = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
-
-  return Object.entries(source).map(([name, prompt]) => ({
-    id: `${Date.now()}-${Math.random()}-${name}`,
-    name,
-    prompt: String(prompt ?? ""),
-  }));
-}
-
 function toSampleImages(value: unknown): SampleImageItem[] {
   if (!value || typeof value !== "object") return [];
 
@@ -98,11 +84,10 @@ function sanitizeFileName(name: string) {
 }
 
 export default function SettingPage() {
+  const [authUser, setAuthUser] = useState<User | null>(null);
   const [setting, setSetting] = useState<SettingRecord | null>(null);
   const [prompt, setPrompt] = useState("");
-  const [purposeItems, setPurposeItems] = useState<PurposePromptItem[]>([]);
   const [sampleImages, setSampleImages] = useState<SampleImageItem[]>([]);
-  const [openPurposeId, setOpenPurposeId] = useState("");
   const [sampleApi, setSampleApi] = useState<CarouselApi | null>(null);
   const [sampleIndex, setSampleIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -145,15 +130,35 @@ export default function SettingPage() {
         return;
       }
 
-      const { data, error } = await supabase
-        .auth
-        .getUser();
+      const { data, error } = await supabase.auth.getUser();
       const user = data.user;
 
-      if (error || !user) {
-        setConfigError(error?.message ?? "Not logged in.");
+      if (error) {
+        const isMissingSession =
+          error.message.toLowerCase().includes("auth session missing") ||
+          error.message.toLowerCase().includes("session");
+
+        if (!isMissingSession) {
+          setConfigError(error.message);
+          setLoading(false);
+          return;
+        }
+      }
+
+      setAuthUser(user ?? null);
+
+      if (!user) {
+        setPrompt("");
+        setSampleImages([]);
         setLoading(false);
-        return;
+
+        const { data: authData } = supabase.auth.onAuthStateChange(
+          (_event: AuthChangeEvent, session: Session | null) => {
+            setAuthUser(session?.user ?? null);
+          }
+        );
+
+        return () => authData.subscription.unsubscribe();
       }
 
       const { data: settingData, error: settingError } = await supabase
@@ -194,16 +199,29 @@ export default function SettingPage() {
         nextSetting = insertedSetting as SettingRecord;
       }
 
-      const loadedPurposeItems = toPurposeItems(nextSetting.purpose_prompt);
       setSetting(nextSetting);
       setPrompt(nextSetting.main_prompt || "");
-      setPurposeItems(loadedPurposeItems);
       setSampleImages(toSampleImages(nextSetting.sample_image));
-      setOpenPurposeId("");
       setLoading(false);
+
+      const { data: authData } = supabase.auth.onAuthStateChange(
+        (_event: AuthChangeEvent, session: Session | null) => {
+          setAuthUser(session?.user ?? null);
+        }
+      );
+
+      return () => authData.subscription.unsubscribe();
     }
 
-    load();
+    let unsubscribe: (() => void) | undefined;
+
+    load().then((cleanup) => {
+      unsubscribe = cleanup;
+    });
+
+    return () => {
+      unsubscribe?.();
+    };
   }, []);
 
   useEffect(() => {
@@ -283,7 +301,11 @@ export default function SettingPage() {
   }
 
   async function persistScanResult(nextMainPrompt: string, nextLogoUrl: string | null) {
-    if (!setting) return;
+    if (!setting || !authUser) {
+      setPrompt(nextMainPrompt);
+      setScanLogoUrl(nextLogoUrl);
+      return true;
+    }
 
     const supabase = getSupabaseClient();
     if (!supabase) {
@@ -314,6 +336,7 @@ export default function SettingPage() {
         : prev
     );
     setPrompt(nextMainPrompt);
+    setScanLogoUrl(nextLogoUrl);
 
     return true;
   }
@@ -435,20 +458,6 @@ export default function SettingPage() {
       return;
     }
 
-    const purposePrompt: Record<string, string> = {};
-
-    for (const item of purposeItems) {
-      const key = item.name.trim();
-      if (!key) continue;
-
-      if (Object.prototype.hasOwnProperty.call(purposePrompt, key)) {
-        alert(`Duplicate purpose: ${key}`);
-        return;
-      }
-
-      purposePrompt[key] = item.prompt;
-    }
-
     setSaving(true);
     const sampleImagePayload = toSampleImagePayload(sampleImages);
     const { error } = await supabase
@@ -456,7 +465,7 @@ export default function SettingPage() {
       .update({
         logo: setting.logo,
         main_prompt: prompt,
-        purpose_prompt: purposePrompt,
+        purpose_prompt: setting.purpose_prompt ?? {},
         sample_image: sampleImagePayload,
       })
       .eq("id", setting.id);
@@ -469,40 +478,7 @@ export default function SettingPage() {
 
     alert("Saved");
   }
-
-  function addPurpose() {
-    const newItem = {
-      id: `${Date.now()}-${Math.random()}`,
-      name: "",
-      prompt: "",
-    };
-    setPurposeItems((prev) => [...prev, newItem]);
-    setOpenPurposeId(newItem.id);
-  }
-
-  function updatePurposeName(id: string, nextName: string) {
-    setPurposeItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, name: nextName } : item))
-    );
-  }
-
-  function updatePurposePrompt(id: string, nextPrompt: string) {
-    setPurposeItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, prompt: nextPrompt } : item))
-    );
-  }
-
-  function removePurpose(id: string) {
-    setPurposeItems((prev) => {
-      const nextItems = prev.filter((item) => item.id !== id);
-      if (openPurposeId === id) {
-        setOpenPurposeId(nextItems[0]?.id ?? "");
-      }
-      return nextItems;
-    });
-  }
-
-  const needsInitialScan = useMemo(() => !prompt.trim(), [prompt]);
+  const needsInitialScan = !prompt.trim();
 
   async function onGenerateScanPrompt(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -589,27 +565,45 @@ export default function SettingPage() {
   }
 
   if (loading) {
-    return <div className="p-6 text-sm text-muted-foreground">Loading settings...</div>;
+    return (
+      <div className="min-h-screen bg-[#050608] text-white">
+        <SiteNavBar mode="fluid" />
+        <div className="p-6 text-sm text-zinc-400">Loading My Brand...</div>
+      </div>
+    );
   }
 
   if (configError) {
     return (
-      <div className="p-6">
+      <div className="min-h-screen bg-[#050608] text-white">
+        <SiteNavBar mode="fluid" />
+        <div className="p-6">
         <Alert variant="destructive">
           <AlertTitle>Settings unavailable</AlertTitle>
           <AlertDescription>{configError}</AlertDescription>
         </Alert>
+        </div>
       </div>
     );
   }
 
   if (needsInitialScan) {
     return (
-      <section className="mx-auto flex w-full max-w-4xl flex-col gap-6 p-6 md:p-8">
-        <Card>
+      <div className="min-h-screen bg-[#050608] text-white">
+        <SiteNavBar mode="fluid" />
+        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+          <div className="absolute -left-20 top-20 h-72 w-72 rounded-full bg-emerald-500/15 blur-[120px]" />
+          <div className="absolute right-0 top-1/3 h-80 w-80 rounded-full bg-cyan-500/10 blur-[140px]" />
+        </div>
+        <section className="relative mx-auto flex w-full max-w-4xl flex-col gap-6 p-6 md:p-8">
+        <Card className="border-white/10 bg-[#0a0d12]/90 text-white">
           <CardHeader>
-            <CardTitle>Set up your brand</CardTitle>
-            <CardDescription>
+            <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.18em] text-zinc-400">
+              <Sparkles className="size-3.5" />
+              My Brand
+            </div>
+            <CardTitle className="mt-4 text-white">Set up your brand</CardTitle>
+            <CardDescription className="text-zinc-400">
               No main prompt found yet. Scan your website to generate your settings first.
             </CardDescription>
           </CardHeader>
@@ -621,7 +615,7 @@ export default function SettingPage() {
             </div>
 
             {scanStep === "input" ? (
-              <Card className="rounded-xl border border-border/80 bg-background/70 py-0 shadow-none">
+              <Card className="rounded-xl border border-white/10 bg-black/20 py-0 text-white shadow-none">
                 <CardContent className="p-4 md:p-5">
                   <form onSubmit={onGenerateScanPrompt} className="flex flex-col gap-3 md:flex-row">
                     <Input
@@ -630,14 +624,14 @@ export default function SettingPage() {
                       value={websiteInput}
                       onChange={(e) => setWebsiteInput(e.target.value)}
                       placeholder="www.yourdomain.com"
-                      className="h-11 px-4"
+                      className="h-11 border-white/10 bg-white/5 px-4 text-white placeholder:text-zinc-500"
                       required
                     />
                     <Button
                       type="submit"
                       size="lg"
                       disabled={isGeneratingScanPrompt}
-                      className="md:min-w-56"
+                      className="bg-emerald-400 text-black hover:bg-emerald-300 md:min-w-56"
                     >
                       {isGeneratingScanPrompt ? "Scanning website..." : "Scan website"}
                     </Button>
@@ -647,18 +641,18 @@ export default function SettingPage() {
             ) : null}
 
             {scanStep === "confirmPrompt" ? (
-              <Card className="rounded-xl border border-border/80 bg-background/70 py-0 shadow-none">
+              <Card className="rounded-xl border border-white/10 bg-black/20 py-0 text-white shadow-none">
                 <CardContent className="space-y-3 p-4 md:p-5">
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-zinc-400">
                     Review and confirm your generated main prompt.
                   </p>
                   <Textarea
                     value={scanPrompt}
                     onChange={(e) => setScanPrompt(e.target.value)}
-                    className="min-h-[180px] p-3"
+                    className="min-h-[180px] border-white/10 bg-white/5 p-3 text-white placeholder:text-zinc-500"
                   />
                   <div className="flex flex-wrap gap-2">
-                    <Button type="button" variant="outline" size="lg" onClick={() => setScanStep("input")}>
+                    <Button type="button" variant="outline" size="lg" onClick={() => setScanStep("input")} className="border-white/15 bg-white/0 text-white hover:bg-white/10">
                       Back
                     </Button>
                     <Button
@@ -666,6 +660,7 @@ export default function SettingPage() {
                       size="lg"
                       onClick={onContinueScanToLogo}
                       disabled={isLoadingScanLogo}
+                      className="bg-emerald-400 text-black hover:bg-emerald-300"
                     >
                       {isLoadingScanLogo ? "Fetching logo..." : "Confirm prompt and continue"}
                     </Button>
@@ -675,13 +670,13 @@ export default function SettingPage() {
             ) : null}
 
             {scanStep === "confirmLogo" ? (
-              <Card className="rounded-xl border border-border/80 bg-background/70 py-0 shadow-none">
+              <Card className="rounded-xl border border-white/10 bg-black/20 py-0 text-white shadow-none">
                 <CardContent className="space-y-3 p-4 md:p-5">
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-zinc-400">
                     We found your website logo from favicon. Confirm and continue.
                   </p>
 
-                  <div className="flex min-h-[96px] w-fit items-center justify-center rounded-lg border border-border bg-background p-3">
+                  <div className="flex min-h-[96px] w-fit items-center justify-center rounded-lg border border-white/10 bg-white p-3">
                     {scanLogoUrl ? (
                       <img
                         src={scanLogoUrl}
@@ -694,17 +689,26 @@ export default function SettingPage() {
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    <Button type="button" variant="outline" size="lg" onClick={() => setScanStep("confirmPrompt")}>
+                    <Button type="button" variant="outline" size="lg" onClick={() => setScanStep("confirmPrompt")} className="border-white/15 bg-white/0 text-white hover:bg-white/10">
                       Back
                     </Button>
-                    <Button
-                      type="button"
-                      size="lg"
-                      onClick={onImportScanSettings}
-                      disabled={isImportingScan}
-                    >
-                      {isImportingScan ? "Saving settings..." : "Use these settings"}
-                    </Button>
+                    {authUser ? (
+                      <Button
+                        type="button"
+                        size="lg"
+                        onClick={onImportScanSettings}
+                        disabled={isImportingScan}
+                        className="bg-emerald-400 text-black hover:bg-emerald-300"
+                      >
+                        {isImportingScan ? "Saving settings..." : "Use these settings"}
+                      </Button>
+                    ) : (
+                      <LoginModalTrigger
+                        label="Log in to Save"
+                        nextPath="/setting"
+                        className="bg-emerald-400 text-black hover:bg-emerald-300"
+                      />
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -717,22 +721,37 @@ export default function SettingPage() {
             ) : null}
           </CardContent>
         </Card>
-      </section>
+        </section>
+      </div>
     );
   }
 
   return (
-    <section className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-6 md:p-8">
-      <Card>
+    <div className="min-h-screen bg-[#050608] text-white">
+      <SiteNavBar mode="fluid" />
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+        <div className="absolute -left-20 top-20 h-72 w-72 rounded-full bg-emerald-500/15 blur-[120px]" />
+        <div className="absolute right-0 top-1/3 h-80 w-80 rounded-full bg-cyan-500/10 blur-[140px]" />
+      </div>
+    <section className="relative mx-auto flex w-full max-w-5xl flex-col gap-6 p-6 md:p-8">
+      <Card className="border-white/10 bg-[#0a0d12]/90 text-white">
         <CardHeader>
-          <CardTitle>Brand Logo</CardTitle>
+          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.18em] text-zinc-400">
+            <Sparkles className="size-3.5" />
+            My Brand
+          </div>
+          <CardTitle className="mt-4 text-white">Brand Logo</CardTitle>
+          <CardDescription className="text-zinc-400">
+            Keep your brand mark ready for website scan results and future creative settings.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="mb-4 flex flex-wrap items-center gap-2">
             <Button
               type="button"
               variant="outline"
-              disabled={uploadingLogo}
+              disabled={uploadingLogo || !authUser}
+              className="border-white/15 bg-white/0 text-white hover:bg-white/10 disabled:opacity-50"
               onClick={() =>
                 (document.getElementById("brand-logo-upload") as HTMLInputElement | null)?.click()
               }
@@ -742,7 +761,8 @@ export default function SettingPage() {
             <Button
               type="button"
               variant="ghost"
-              disabled={!setting?.logo || uploadingLogo}
+              disabled={!setting?.logo || uploadingLogo || !authUser}
+              className="text-zinc-300 hover:bg-white/10 hover:text-white disabled:opacity-50"
               onClick={onRemoveLogo}
             >
               Remove logo
@@ -759,28 +779,32 @@ export default function SettingPage() {
               }}
             />
           </div>
-          {setting?.logo ? (
+          {setting?.logo || scanLogoUrl ? (
             <img
-              src={setting.logo}
+              src={setting?.logo ?? scanLogoUrl ?? ""}
               alt="Brand logo"
-              className="h-auto w-[200px] rounded-lg border border-border bg-white p-2"
+              className="h-auto w-[200px] rounded-lg border border-white/10 bg-white p-2"
             />
           ) : (
-            <p className="text-sm text-muted-foreground">No logo found.</p>
+            <p className="text-sm text-zinc-400">No logo found.</p>
           )}
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="border-white/10 bg-[#0a0d12]/90 text-white">
         <CardHeader>
-          <CardTitle>Sample Images</CardTitle>
+          <CardTitle className="text-white">Sample Images</CardTitle>
+          <CardDescription className="text-zinc-400">
+            Upload reference examples to anchor your brand look. Saving sample images requires login.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="mb-4 flex flex-wrap items-center gap-2">
             <Button
               type="button"
               variant="outline"
-              disabled={uploadingSamples}
+              disabled={uploadingSamples || !authUser}
+              className="border-white/15 bg-white/0 text-white hover:bg-white/10 disabled:opacity-50"
               onClick={() =>
                 (document.getElementById("sample-image-upload") as HTMLInputElement | null)?.click()
               }
@@ -790,7 +814,8 @@ export default function SettingPage() {
             <Button
               type="button"
               variant="ghost"
-              disabled={sampleImages.length === 0 || uploadingSamples}
+              disabled={sampleImages.length === 0 || uploadingSamples || !authUser}
+              className="text-zinc-300 hover:bg-white/10 hover:text-white disabled:opacity-50"
               onClick={onDeleteCurrentSample}
             >
               Delete current image
@@ -821,7 +846,7 @@ export default function SettingPage() {
                 <CarouselContent>
                   {sampleImages.map((item) => (
                     <CarouselItem key={item.id} className="basis-1/3"> 
-                      <div className="overflow-hidden rounded-xl border border-border bg-white">
+                      <div className="overflow-hidden rounded-xl border border-white/10 bg-white">
                         <img
                           src={item.url}
                           alt={item.label}
@@ -836,109 +861,53 @@ export default function SettingPage() {
               </Carousel>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">No sample images found.</p>
+            <p className="text-sm text-zinc-400">No sample images found.</p>
           )}
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="border-white/10 bg-[#0a0d12]/90 text-white">
         <CardHeader>
-          <CardTitle>Branding Guidance</CardTitle>
+          <div className="flex items-center gap-2 text-sm font-medium text-white">
+            <Globe className="size-4 text-emerald-300" />
+            Branding Guidance
+          </div>
+          <CardTitle className="text-white">Main Prompt</CardTitle>
+          <CardDescription className="text-zinc-400">
+            Describe your brand tone, visual rules, lighting preferences, styling direction, and generation constraints.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <Label htmlFor="main-prompt" className="mb-2 block">
+          <Label htmlFor="main-prompt" className="mb-2 block text-zinc-200">
             Prompt
           </Label>
           <Textarea
             id="main-prompt"
-            className="min-h-[220px]"
+            className="min-h-[220px] border-white/10 bg-white/5 text-white placeholder:text-zinc-500"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
           />
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-3">
-          <div className="space-y-1">
-            <CardTitle>Purpose</CardTitle>
-          </div>
-          <Button type="button" variant="outline" onClick={addPurpose}>
-            Add purpose
-          </Button>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          {purposeItems.length === 0 ? (
-            <Alert>
-              <AlertTitle>No purpose yet</AlertTitle>
-              <AlertDescription>Click Add purpose to create one.</AlertDescription>
-            </Alert>
-          ) : (
-            purposeItems.map((item, index) => {
-              const isOpen = openPurposeId === item.id;
-              const displayName = item.name.trim() || `Purpose ${index + 1}`;
-
-              return (
-                <Collapsible
-                  key={item.id}
-                  open={isOpen}
-                  onOpenChange={(open) => setOpenPurposeId(open ? item.id : "")}
-                >
-                  <Card className="bg-muted/40">
-                    <CardHeader className="flex flex-row items-center justify-between gap-3">
-                      <CollapsibleTrigger className="flex flex-1 items-center justify-between rounded-md px-2 py-1 text-left hover:bg-muted">
-                        <span className="text-sm font-medium">{displayName}</span>
-                        <ChevronDownIcon
-                          className={`size-4 text-muted-foreground transition-transform ${
-                            isOpen ? "rotate-180" : ""
-                          }`}
-                        />
-                      </CollapsibleTrigger>
-                      <Button type="button" variant="ghost" size="sm" onClick={() => removePurpose(item.id)}>
-                        Delete
-                      </Button>
-                    </CardHeader>
-                    <CollapsibleContent>
-                      <CardContent className="grid gap-3 pt-0">
-                        <div className="grid gap-2">
-                          <Label htmlFor={`purpose-name-${item.id}`}>Purpose name</Label>
-                          <Input
-                            id={`purpose-name-${item.id}`}
-                            value={item.name}
-                            onChange={(e) => updatePurposeName(item.id, e.target.value)}
-                            placeholder="Example: ads creative"
-                          />
-                        </div>
-
-                        <div className="grid gap-2">
-                          <Label htmlFor={`purpose-prompt-${item.id}`}>Prompt text</Label>
-                          <Textarea
-                            id={`purpose-prompt-${item.id}`}
-                            className="min-h-[150px]"
-                            value={item.prompt}
-                            onChange={(e) => updatePurposePrompt(item.id, e.target.value)}
-                            placeholder="Purpose prompt..."
-                          />
-                        </div>
-                      </CardContent>
-                    </CollapsibleContent>
-                  </Card>
-                </Collapsible>
-              );
-            })
-          )}
-        </CardContent>
-      </Card>
-
       <div className="flex flex-wrap justify-end gap-2">
-        <Button type="button" variant="outline" disabled title="Coming soon">
+        <Button type="button" variant="outline" disabled title="Coming soon" className="border-white/15 bg-white/0 text-white hover:bg-white/10">
           Test Main Prompt
         </Button>
-        <Button type="button" onClick={save} disabled={saving}>
-          {saving ? "Saving..." : "Save"}
-        </Button>
+        {authUser ? (
+          <Button type="button" onClick={save} disabled={saving} className="bg-emerald-400 text-black hover:bg-emerald-300">
+            {saving ? "Saving..." : "Save"}
+          </Button>
+        ) : (
+          <LoginModalTrigger
+            label="Log in to Save"
+            nextPath="/setting"
+            className="bg-emerald-400 text-black hover:bg-emerald-300"
+          />
+        )}
       </div>
     </section>
+    </div>
   );
 }
 
@@ -954,8 +923,8 @@ function SettingStepTag({
       className={cn(
         "rounded-full border px-3 py-1",
         active
-          ? "border-foreground/20 bg-foreground/5 text-foreground"
-          : "border-border bg-background text-muted-foreground"
+          ? "border-white/20 bg-white/10 text-white"
+          : "border-white/10 bg-white/5 text-zinc-400"
       )}
     >
       {children}
