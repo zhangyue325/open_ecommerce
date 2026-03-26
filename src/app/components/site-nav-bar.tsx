@@ -25,6 +25,7 @@ export default function SiteNavBar({ mode = "contained" }: SiteNavBarProps) {
   const router = useRouter();
   const [authUser, setAuthUser] = useState<User | null | undefined>(cachedAuthUser);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [avatarLoadFailed, setAvatarLoadFailed] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -72,12 +73,16 @@ export default function SiteNavBar({ mode = "contained" }: SiteNavBarProps) {
   const avatarUrl = useMemo(() => {
     if (!authUser) return "";
     const metadata = authUser.user_metadata as Record<string, unknown> | undefined;
-    const picture = metadata?.picture;
     const avatar = metadata?.avatar_url;
-    if (typeof picture === "string" && picture.trim()) return picture;
     if (typeof avatar === "string" && avatar.trim()) return avatar;
+    const picture = metadata?.picture;
+    if (typeof picture === "string" && picture.trim()) return picture;
     return "";
   }, [authUser]);
+
+  useEffect(() => {
+    setAvatarLoadFailed(false);
+  }, [avatarUrl]);
 
   const avatarFallback = useMemo(() => {
     if (!authUser) return "U";
@@ -172,8 +177,14 @@ export default function SiteNavBar({ mode = "contained" }: SiteNavBarProps) {
                   title={authUser.email ?? "Account"}
                   aria-expanded={accountMenuOpen}
                 >
-                  {avatarUrl ? (
-                    <img src={avatarUrl} alt="User avatar" className="size-full object-cover" />
+                  {avatarUrl && !avatarLoadFailed ? (
+                    <img
+                      src={avatarUrl}
+                      alt="User avatar"
+                      className="size-full object-cover"
+                      referrerPolicy="no-referrer"
+                      onError={() => setAvatarLoadFailed(true)}
+                    />
                   ) : (
                     <span>{avatarFallback}</span>
                   )}
