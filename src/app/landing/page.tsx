@@ -33,20 +33,20 @@ const featuredCards: Record<GenerationModeId, FeaturedCard[]> = {
     {
       title: "Turn plain packshots into conversion-ready product ads",
       description: "Generate polished Google Ads creatives with clean lighting, premium composition, and space for high-performing headlines.",
-      image: "/clean_product_shot.png",
-      className: "lg:col-span-6",
+      image: "/landing_page/feature1-1.png",
+      className: "lg:col-span-6 hidden",
     },
     {
       title: "Performance Max layouts built for scale",
       description: "Create campaign assets that look native across Search, Display, and shopping placements without redesigning each format by hand.",
       image: "/performance_max_asset.png",
-      className: "lg:col-span-3",
+      className: "lg:col-span-3 hidden",
     },
     {
       title: "Poster-style concepts for stronger click intent",
       description: "Push beyond flat catalog visuals with bold campaign art direction that still keeps the product clear and shoppable.",
       image: "/poster_style.png",
-      className: "lg:col-span-3",
+      className: "lg:col-span-3 hidden",
     },
   ],
   meta_ads: [
@@ -54,19 +54,19 @@ const featuredCards: Record<GenerationModeId, FeaturedCard[]> = {
       title: "Launch Meta campaigns with scroll-stopping creative angles",
       description: "Generate paid social images that feel native to the feed while staying structured for product-first performance marketing.",
       image: "/scroll_stopper.png",
-      className: "lg:col-span-6",
+      className: "lg:col-span-6 hidden",
     },
     {
       title: "Lifestyle scenes that feel polished, not generic",
       description: "Blend product focus with human context so ads feel premium, believable, and ready for broad audience testing.",
       image: "/shoes_with_model_feet.png",
-      className: "lg:col-span-3",
+      className: "lg:col-span-3 hidden",
     },
     {
       title: "Hook-first ad concepts for faster iteration",
       description: "Test visual hooks, emotional framing, and offer-led compositions without booking another shoot.",
       image: "/emotional_hook.png",
-      className: "lg:col-span-3",
+      className: "lg:col-span-3 hidden",
     },
   ],
   instagram: [
@@ -74,19 +74,19 @@ const featuredCards: Record<GenerationModeId, FeaturedCard[]> = {
       title: "Create Instagram drops with one consistent visual language",
       description: "Generate feed posts, launch creatives, and hero visuals that feel cohesive across every touchpoint of the campaign.",
       image: "/poster_style.png",
-      className: "lg:col-span-6",
+      className: "lg:col-span-6 hidden",
     },
     {
       title: "Lifestyle imagery designed for saves and shares",
       description: "Build aspirational brand moments with cleaner framing, stronger product styling, and a more editorial finish.",
       image: "/shoes_with_model_feet.png",
-      className: "lg:col-span-3",
+      className: "lg:col-span-3 hidden",
     },
     {
       title: "Story-friendly compositions without manual rework",
       description: "Keep text-safe spacing, strong visual focus, and mobile-first layouts built for Instagram-native content.",
       image: "/scroll_stopper.png",
-      className: "lg:col-span-3",
+      className: "lg:col-span-3 hidden",
     },
   ],
   tiktok: [
@@ -94,19 +94,19 @@ const featuredCards: Record<GenerationModeId, FeaturedCard[]> = {
       title: "Generate TikTok ad concepts with immediate thumb-stop energy",
       description: "Start from one product image and turn it into bold, motion-ready frames built for fast-paced short-form campaigns.",
       image: "/emotional_hook.png",
-      className: "lg:col-span-6",
+      className: "lg:col-span-6 hidden",
     },
     {
       title: "UGC-inspired visuals without a full creator shoot",
       description: "Mock up creator-style product moments that feel casual, persuasive, and made for paid social testing.",
       image: "/shoes_with_model_feet.png",
-      className: "lg:col-span-3",
+      className: "lg:col-span-3 hidden",
     },
     {
       title: "9:16 compositions made for mobile performance",
       description: "Frame the product, headline area, and action cues for vertical creatives that can later expand into video workflows.",
       image: "/performance_max_asset.png",
-      className: "lg:col-span-3",
+      className: "lg:col-span-3 hidden",
     },
   ],
 };
@@ -181,6 +181,7 @@ const inspirationCards = [
   { title: "Scroll Stopper", image: "/scroll_stopper.png", size: "h-135" },
   { title: "Clean Product Shot", image: "/clean_product_shot.png", size: "h-70" },
   { title: "Emotional Hook", image: "/emotional_hook.png", size: "h-135" },
+  { title: "Promotion Countdown Banner", image: "/promotion_countdown_banner.png", size: "h-70" },
 
 
 ];
@@ -301,7 +302,7 @@ export default function LandingPage() {
           <section id="suite" className="mt-14 scroll-mt-24">
             <div className="flex items-end justify-between gap-3">
               <div>
-                <p className="text-xs tracking-[0.18em] text-zinc-400 uppercase">OpenCommerce Suite</p>
+                <p className="text-xs tracking-[0.18em] text-zinc-400 uppercase">OpenEcommerce Suite</p>
                 <h2 className="mt-2 text-2xl font-semibold tracking-[-0.02em] text-white md:text-3xl">
                   Everything for ecommerce creative production
                 </h2>
@@ -381,12 +382,8 @@ export default function LandingPage() {
               <div>
                 <p className="text-xs tracking-[0.18em] text-zinc-400 uppercase">Inspiration</p>
                 <h2 className="mt-2 text-2xl font-semibold tracking-[-0.02em] text-white md:text-3xl">
-                  Explore ideas before you generate
+                  Explore ideas from templates before you generate
                 </h2>
-              </div>
-              <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 p-1 text-xs">
-                <span className="rounded-full bg-white px-3 py-1 font-medium text-black">Image</span>
-                <span className="px-3 py-1 text-zinc-300">Video</span>
               </div>
             </div>
 
@@ -435,7 +432,7 @@ export default function LandingPage() {
         {sectionVisibility.footer ? (
           <footer className="mt-12 border-t border-white/10 pt-6 text-sm text-zinc-400">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p>(c) {new Date().getFullYear()} OpenCommerce</p>
+              <p>(c) {new Date().getFullYear()} OpenEcommerce</p>
               <p className="inline-flex items-center gap-2">
                 <WandSparkles className="size-4 text-emerald-300" />
                 AI creative workflow for modern ecommerce teams

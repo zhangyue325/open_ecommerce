@@ -282,6 +282,7 @@ Design for immediate readability in paid ads and mobile placements.
 
 Overall aesthetic:
 Urgent, promotional, high-conversion campaign banner with strong retail energy.`,
+"sampleImageUrl": "/promotion_countdown_banner.png"
   },
   "New Arrival Launch": {
     prompt: `tagline: New Arrival

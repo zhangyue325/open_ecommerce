@@ -8,7 +8,7 @@ const MODEL_OPTIONS = [
   { value: "gemini-2.5-flash-image", label: "Nano Banana Pro" },
   { value: "gemini-3.1-flash-image-preview", label: "Nano Banana" },
 ];
-const RATIO_OPTIONS = ["1:1", "3:4", "4:5", "16:9", "9:16"];
+const RATIO_OPTIONS = ["1:1", "4:5", "5:4", "16:9", "9:16"];
 const RESOLUTION_OPTIONS = [
   { value: "1K", label: "1K" },
   { value: "2K", label: "2K" },
