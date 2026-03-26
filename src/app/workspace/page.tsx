@@ -21,11 +21,9 @@ const PLATFORM_PURPOSE_MAP: Record<string, string[]> = {
     "Benefit Callout Ad",
   ],
   "Meta Ads": [
-    "Emotional Hook",
     "Scroll Stopper",
-    "UGC Testimonial Frame",
+    "Emotional Hook",
     "Promo Countdown Banner",
-    "New Arrival Launch",
   ],
 };
 
@@ -56,6 +54,7 @@ export default function WorkspacePage() {
   const onSelectPurpose = (purpose: string) => {
     setSelectedPurpose(purpose);
     setPromptText(getBuiltInPrompt(purpose));
+    setGeneratedImages([]);
   };
 
   const onSelectPlatform = (platform: string) => {
@@ -64,6 +63,7 @@ export default function WorkspacePage() {
     const nextPurpose = nextPurposes[0] ?? "";
     setSelectedPurpose(nextPurpose);
     setPromptText(getBuiltInPrompt(nextPurpose));
+    setGeneratedImages([]);
   };
   const [uploadedImages, setUploadedImages] = useState<
     Array<{ id: string; name: string; previewUrl: string; file: File }>

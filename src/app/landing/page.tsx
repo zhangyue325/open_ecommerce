@@ -178,12 +178,12 @@ const modelCards = [
 ];
 
 const inspirationCards = [
-  { title: "Scroll Stopper", image: "/scroll_stopper.png", size: "h-135" },
-  { title: "Clean Product Shot", image: "/clean_product_shot.png", size: "h-70" },
   { title: "Emotional Hook", image: "/emotional_hook.png", size: "h-135" },
   { title: "Promotion Countdown Banner", image: "/promotion_countdown_banner.png", size: "h-70" },
-
-
+  { title: "Luxury Studio Spotlight", image: "/luxury_studio_spotlight.png", size: "h-65" },
+  { title: "Catalog White Background", image: "/catalog_white_background.png", size: "h-45" },
+  { title: "Clean Product Shot", image: "/clean_product_shot.png", size: "h-70" },
+  { title: "Scroll Stopper", image: "/scroll_stopper.png", size: "h-135" },
 ];
 
 const sectionVisibility = {

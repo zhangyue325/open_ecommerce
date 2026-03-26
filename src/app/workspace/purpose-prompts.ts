@@ -147,6 +147,7 @@ Keep edges sharp and product details highly visible.
 
 Overall aesthetic:
 Marketplace-safe, crisp, commercial, clean, and optimized for product listing conversion.`,
+sampleImageUrl: "/catalog_white_background.png"
   },
   "Luxury Studio Spotlight": {
     prompt: `tagline: Limited Edition Drop
@@ -169,6 +170,7 @@ Balanced and symmetrical with strong negative space for luxury branding.
 
 Overall aesthetic:
 High-end, cinematic, premium ecommerce hero image for upscale campaigns.`,
+"sampleImageUrl": "luxury_studio_spotlight.png"
   },
   "Bundle Offer Visual": {
     prompt: `tagline: Buy More Save More
