@@ -2,7 +2,7 @@ competitors:
  - www.designkit.com
  - higgsfield.ai/
  - https://www.bannerflow.com/
- - https://openart.ai  we use openecommerce.io
+ - https://openart.ai  
 
 who we are?
  - design for ecom startups, few clicks transfer your raw product image to 530638
@@ -10,10 +10,11 @@ who we are?
 
 highlights
  - prebuilt prompt templates consistant with your brand guidance
- - 
+ - built for ecommerce
 
 
 to do
 - have video gen
 - generate tiktok and ig templates
 - allow user to create his own template
+- chrome plugin to generate and fill images in google ads, meta ads, shopify, shopee, lazada, amazon
