@@ -2,7 +2,8 @@ competitors:
  - www.designkit.com
  - higgsfield.ai/
  - https://www.bannerflow.com/
- - https://openart.ai  
+ - https://openart.ai
+ - https://labs.google.com/pomelli/onboarding
 
 who we are?
  - design for ecom startups, few clicks transfer your raw product image to 530638
