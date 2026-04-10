@@ -6,9 +6,9 @@ export default function WorkspaceLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className=" bg-[#050608]">
+    <div className="bg-[#050608]">
       <SiteNavBar mode="fluid" />
-      <div className="h-[calc(100dvh-4rem)]">{children}</div>
+      <div className="min-h-[calc(100dvh-4rem)]">{children}</div>
     </div>
   );
 }

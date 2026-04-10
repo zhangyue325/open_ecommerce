@@ -1,7 +1,12 @@
 import { GoogleGenAI } from "@google/genai";
 
 import {
-  buildFallbackMainPrompt,
+  buildFallbackBrandIdentity,
+  buildMainPromptFromIdentity,
+  normalizeBrandIdentity,
+  type BrandIdentity,
+} from "@/lib/brand-identity";
+import {
   fetchWebsiteMetadata,
   type WebsiteMetadata,
 } from "@/lib/website-scan";
@@ -19,13 +24,15 @@ export async function POST(req: Request) {
     }
 
     const metadata = await fetchWebsiteMetadata(websiteUrl);
-    const mainPrompt = await generateMainPrompt(metadata);
+    const brandIdentity = await generateBrandIdentity(metadata);
+    const mainPrompt = buildMainPromptFromIdentity(brandIdentity);
 
     return Response.json({
       normalizedUrl: metadata.normalizedUrl,
       hostname: metadata.hostname,
       title: metadata.title,
       description: metadata.description,
+      brandIdentity,
       mainPrompt,
     });
   } catch (error) {
@@ -36,11 +43,11 @@ export async function POST(req: Request) {
   }
 }
 
-async function generateMainPrompt(metadata: WebsiteMetadata): Promise<string> {
-  const fallbackPrompt = buildFallbackMainPrompt(metadata);
+async function generateBrandIdentity(metadata: WebsiteMetadata): Promise<BrandIdentity> {
+  const fallbackIdentity = buildFallbackBrandIdentity(metadata);
 
   if (!process.env.GEMINI_API_KEY) {
-    return fallbackPrompt;
+    return fallbackIdentity;
   }
 
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
@@ -58,10 +65,10 @@ async function generateMainPrompt(metadata: WebsiteMetadata): Promise<string> {
   };
 
   const userText = [
-    "Generate one brand-level main prompt for AI creative generation.",
-    "The prompt should be specific, commercially useful, and reusable for product campaign imagery.",
-    "Include brand identity, brand tone, and generation rules.",
-    "Keep it under 220 words.",
+    "Extract a concise ecommerce brand identity from this website context.",
+    "Return JSON only.",
+    'Use this exact schema: {"tagline":"string","brandValues":["a","b","c","d"],"brandAesthetic":["a","b","c","d"],"toneOfVoice":["a","b","c","d"],"businessOverview":"string"}',
+    "Requirements: tagline is a short marketing line. brandValues must contain exactly 4 keywords or short phrases. brandAesthetic must contain exactly 4 keywords or short phrases. toneOfVoice must contain exactly 4 keywords or short phrases. businessOverview must be one paragraph and commercially useful.",
     `Website data: ${JSON.stringify(websiteContext)}`,
   ].join("\n");
 
@@ -76,34 +83,24 @@ async function generateMainPrompt(metadata: WebsiteMetadata): Promise<string> {
       .join("\n")
       .trim() || "";
 
-  return normalizeGeneratedPrompt(generatedText) || fallbackPrompt;
+  return normalizeGeneratedIdentity(generatedText, fallbackIdentity);
 }
 
-function normalizeGeneratedPrompt(raw: string): string {
+function normalizeGeneratedIdentity(raw: string, fallback: BrandIdentity): BrandIdentity {
   const trimmed = raw.trim();
-  if (!trimmed) return "";
+  if (!trimmed) return fallback;
 
   const withoutFences = trimmed
     .replace(/^```(?:text|json)?\s*/i, "")
     .replace(/\s*```$/i, "")
     .trim();
 
-  if (withoutFences.startsWith("{")) {
-    try {
-      const parsed = JSON.parse(withoutFences) as { mainPrompt?: unknown; prompt?: unknown };
-      const candidate =
-        typeof parsed.mainPrompt === "string"
-          ? parsed.mainPrompt
-          : typeof parsed.prompt === "string"
-            ? parsed.prompt
-            : "";
-      return candidate.trim();
-    } catch {
-      // Treat as plain text if json parsing fails.
-    }
+  try {
+    const parsed = JSON.parse(withoutFences) as Partial<BrandIdentity>;
+    return normalizeBrandIdentity(parsed, fallback);
+  } catch {
+    return fallback;
   }
-
-  return withoutFences;
 }
 
 function isUserError(message: string): boolean {

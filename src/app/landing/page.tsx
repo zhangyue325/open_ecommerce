@@ -214,23 +214,20 @@ export default function LandingPage() {
             Built for e-commerce 🛍️
           </p>
           <h1 className="mx-auto mt-5 max-w-4xl text-balance text-4xl font-semibold leading-tight tracking-[-0.03em] text-white md:text-6xl">
-            What would you like to{" "}
+            Generate ecommerce contents that follow {" "}
             <span className="bg-gradient-to-r from-emerald-300 via-cyan-300 to-sky-300 bg-clip-text text-transparent">
-              sale
+              brand DNA
             </span>{" "}
-            today?
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-zinc-300 md:text-base">
-            Your home for ecommerce AI-generated creatives
-          </p>
+
 
           <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
             <Link
-              href="/workspace"
+              href="/brand"
               className="inline-flex h-9 items-center gap-2 rounded-lg bg-emerald-400 px-5 text-sm font-semibold text-black transition hover:bg-emerald-300"
             >
               <Sparkles className="size-4" />
-              Create with AI
+              Generate My Brand DNA
             </Link>
             <Link
               href="/workspace"

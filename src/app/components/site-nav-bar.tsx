@@ -11,7 +11,7 @@ import { createClient } from "../../../lib/supabase/client";
 const navItems = [
   { label: "Home", href: "/landing" },
   { label: "Workspace", href: "/workspace" },
-  { label: "My Brand", href: "/setting" },
+  { label: "My Brand", href: "/brand" },
 ];
 
 let cachedAuthUser: User | null | undefined = undefined;
@@ -194,7 +194,7 @@ export default function SiteNavBar({ mode = "contained" }: SiteNavBarProps) {
                   <div className="absolute right-0 top-full z-[60] mt-2 w-52 rounded-xl border border-white/15 bg-[#0a0d12] p-2 shadow-2xl">
                     <div className="flex flex-col gap-2">
                       <Link
-                        href="/setting"
+                        href="/brand"
                         onClick={() => setAccountMenuOpen(false)}
                         className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 px-2 py-2 text-xs font-medium text-zinc-100 transition hover:bg-white/10"
                       >

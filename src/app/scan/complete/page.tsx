@@ -81,7 +81,7 @@ export default async function ScanCompletePage({ searchParams }: ScanCompletePag
     }
   }
 
-  redirect(`/setting?imported_from_scan=1&website=${encodeURIComponent(payload.websiteUrl)}`);
+  redirect(`/brand?imported_from_scan=1&website=${encodeURIComponent(payload.websiteUrl)}`);
 }
 
 function decodeScanToken(rawToken: string): ScanTokenPayload | null {
