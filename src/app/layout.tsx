@@ -19,8 +19,8 @@ const spaceMono = Space_Mono({
 
 export const metadata: Metadata = {
   title: "Open Ecommerce",
-  description: "Generate and refine brand images and videos with AI.",
-  metadataBase: new URL("https://opencommerce.io"),
+  description: "Open Ecommerce is a product-ready platfrom that help ecommerce start-ups generate their paid ads creatives, website creatives, email creatives that follows their own 'Business DNA'. The core concepts behind core Google's Pomelli, but easier to use and more tailored for ecommerce.",
+  metadataBase: new URL("https://openecommerce.app"),
 };
 
 export default function RootLayout({

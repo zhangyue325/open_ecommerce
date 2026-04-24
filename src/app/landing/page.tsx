@@ -233,7 +233,7 @@ export default function LandingPage() {
               href="/workspace"
               className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/20 bg-white/5 px-4 text-sm font-medium text-white transition hover:bg-white/10"
             >
-              Browse templates
+              Browse Templates
               <ArrowRight className="size-4" />
             </Link>
           </div>
@@ -432,7 +432,7 @@ export default function LandingPage() {
               <p>(c) {new Date().getFullYear()} OpenEcommerce</p>
               <p className="inline-flex items-center gap-2">
                 <WandSparkles className="size-4 text-emerald-300" />
-                AI creative workflow for modern ecommerce teams
+                Built with ❤️ for Ecomerce Startups
               </p>
             </div>
           </footer>

@@ -2,16 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { AuthChangeEvent, Session, User } from "@supabase/supabase-js";
-import {
-  BadgeCheck,
-  Database,
-  Globe2,
-  LoaderCircle,
-  RefreshCw,
-  Sparkles,
-  WandSparkles,
-  X,
-} from "lucide-react";
+import { Globe2, LoaderCircle, RefreshCw, Sparkles } from "lucide-react";
 
 import {
   buildMainPromptFromIdentity,
@@ -21,10 +12,20 @@ import {
 import { createClient } from "../../../lib/supabase/client";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import LoginModalTrigger from "../login/login-modal-trigger";
+import { Card, CardContent } from "@/components/ui/card";
+import BrandIdentityCard from "./brand-identity-card";
+import {
+  clearDraft,
+  clearPendingSave,
+  type BrandDraft,
+  hasSavedIdentity,
+  normalizeWebsiteInput,
+  readDraft,
+  readPendingSave,
+  writeDraft,
+  writePendingSave,
+} from "./brand-draft-storage";
+import WebsiteModal from "./website-modal";
 
 type SettingRecord = {
   id: number;
@@ -35,10 +36,7 @@ type SettingRecord = {
   sample_image?: unknown;
 };
 
-type GeneratedIdentity = BrandIdentity & {
-  websiteUrl: string;
-  logoUrl: string;
-};
+type GeneratedIdentity = BrandDraft;
 
 type ScanPromptResponse = {
   normalizedUrl: string;
@@ -50,113 +48,6 @@ type ScanLogoResponse = {
   logoUrl: string;
   error?: string;
 };
-
-const BRAND_DRAFT_KEY = "brand-page-generated-draft";
-const BRAND_PENDING_SAVE_KEY = "brand-page-pending-save";
-
-function normalizeWebsiteInput(value: string) {
-  const trimmed = value.trim();
-  if (!trimmed) return "";
-
-  if (/^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//.test(trimmed)) {
-    return trimmed;
-  }
-
-  return `https://${trimmed}`;
-}
-
-function hasSavedIdentity(setting: SettingRecord | null) {
-  return Boolean(setting?.main_prompt?.trim() || setting?.logo?.trim());
-}
-
-function readDraft() {
-  if (typeof window === "undefined") return null;
-
-  try {
-    const raw = window.localStorage.getItem(BRAND_DRAFT_KEY);
-    if (!raw) return null;
-
-    const parsed = JSON.parse(raw) as Partial<GeneratedIdentity>;
-    if (
-      typeof parsed.websiteUrl !== "string" ||
-      typeof parsed.logoUrl !== "string" ||
-      typeof parsed.tagline !== "string" ||
-      !Array.isArray(parsed.brandValues) ||
-      !Array.isArray(parsed.brandAesthetic) ||
-      !Array.isArray(parsed.toneOfVoice) ||
-      typeof parsed.businessOverview !== "string"
-    ) {
-      return null;
-    }
-
-    return {
-      websiteUrl: parsed.websiteUrl,
-      logoUrl: parsed.logoUrl,
-      tagline: parsed.tagline,
-      brandValues: parsed.brandValues.filter((item): item is string => typeof item === "string"),
-      brandAesthetic: parsed.brandAesthetic.filter((item): item is string => typeof item === "string"),
-      toneOfVoice: parsed.toneOfVoice.filter((item): item is string => typeof item === "string"),
-      businessOverview: parsed.businessOverview,
-    } satisfies GeneratedIdentity;
-  } catch {
-    return null;
-  }
-}
-
-function writeDraft(draft: GeneratedIdentity) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(BRAND_DRAFT_KEY, JSON.stringify(draft));
-}
-
-function clearDraft() {
-  if (typeof window === "undefined") return;
-  window.localStorage.removeItem(BRAND_DRAFT_KEY);
-}
-
-function readPendingSave() {
-  if (typeof window === "undefined") return false;
-  return window.localStorage.getItem(BRAND_PENDING_SAVE_KEY) === "1";
-}
-
-function writePendingSave() {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(BRAND_PENDING_SAVE_KEY, "1");
-}
-
-function clearPendingSave() {
-  if (typeof window === "undefined") return;
-  window.localStorage.removeItem(BRAND_PENDING_SAVE_KEY);
-}
-
-function KeywordGroup({ items }: { items: string[] }) {
-  return (
-    <div className="flex flex-wrap gap-2">
-      {items.map((item) => (
-        <span
-          key={item}
-          className="inline-flex rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-zinc-200"
-        >
-          {item}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-function IdentitySection({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="space-y-2 rounded-2xl border border-white/10 bg-white/5 p-4">
-      <div className="text-xs uppercase tracking-[0.22em] text-zinc-500">{label}</div>
-      {children}
-    </div>
-  );
-}
 
 export default function BrandPage() {
   const [authUser, setAuthUser] = useState<User | null>(null);
@@ -304,13 +195,15 @@ export default function BrandPage() {
   }, []);
 
   useEffect(() => {
+    if (loading) return;
+
     if (generatedIdentity) {
       writeDraft(generatedIdentity);
       return;
     }
 
     clearDraft();
-  }, [generatedIdentity]);
+  }, [generatedIdentity, loading]);
 
   useEffect(() => {
     if (loading || configError) return;
@@ -408,6 +301,23 @@ export default function BrandPage() {
     setAutoSaveArmed(true);
   };
 
+  const updateIdentityDraft = (patch: Partial<GeneratedIdentity>) => {
+    if (!displayedIdentity) return;
+
+    setGeneratedIdentity((current) => ({
+      websiteUrl: patch.websiteUrl ?? current?.websiteUrl ?? websiteInput,
+      logoUrl: patch.logoUrl ?? current?.logoUrl ?? displayedLogoUrl,
+      tagline: patch.tagline ?? current?.tagline ?? displayedIdentity.tagline,
+      brandValues: patch.brandValues ?? current?.brandValues ?? displayedIdentity.brandValues,
+      brandAesthetic: patch.brandAesthetic ?? current?.brandAesthetic ?? displayedIdentity.brandAesthetic,
+      toneOfVoice: patch.toneOfVoice ?? current?.toneOfVoice ?? displayedIdentity.toneOfVoice,
+      businessOverview:
+        patch.businessOverview ?? current?.businessOverview ?? displayedIdentity.businessOverview,
+    }));
+
+    setMessage("Brand identity edited. Save changes when ready.");
+  };
+
   if (loading) {
     return <div className="h-full overflow-y-auto p-6 text-sm text-zinc-400">Loading brand identity...</div>;
   }
@@ -479,140 +389,27 @@ export default function BrandPage() {
             </Card>
           ) : null}
 
-          {displayedIdentity || savedIdentityExists ? (
-            <Card className="border-white/10 bg-[#0b0f15]/90 text-white shadow-[0_18px_60px_rgba(0,0,0,0.25)]">
-              <CardHeader className="gap-2">
-                <div
-                  className={
-                    generatedIdentity
-                      ? "inline-flex w-fit items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs uppercase tracking-[0.18em] text-cyan-100"
-                      : "inline-flex w-fit items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs uppercase tracking-[0.18em] text-emerald-200"
-                  }
-                >
-                  {generatedIdentity ? <WandSparkles className="size-3.5" /> : <Database className="size-3.5" />}
-                  {generatedIdentity ? "Generated brand identity" : "Saved brand identity"}
-                </div>
-                <CardTitle className="text-white">
-                  {generatedIdentity ? "Step 3: Confirm the brand identity" : "Current brand identity"}
-                </CardTitle>
-                <CardDescription className="text-zinc-400">
-                  {generatedIdentity
-                    ? "The generated result is shown below. If it looks right, save it to the database."
-                    : "The brand page reflects the logo, tagline, values, aesthetic, tone of voice, and business overview currently saved for this account."}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
-                <div className="space-y-4">
-                  <div className="rounded-3xl border border-white/10 bg-white/95 p-6">
-                    {displayedLogoUrl ? (
-                      <img
-                        src={displayedLogoUrl}
-                        alt="Brand logo preview"
-                        className="mx-auto max-h-28 w-full object-contain"
-                      />
-                    ) : (
-                      <div className="flex min-h-28 items-center justify-center text-center text-sm text-zinc-500">
-                        No logo preview found
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-zinc-300">
-                    <div className="mb-2 text-xs uppercase tracking-[0.18em] text-zinc-500">Website</div>
-                    <div className="break-all">{generatedIdentity?.websiteUrl || websiteInput || "No website captured"}</div>
-                  </div>
-                </div>
-
-                {displayedIdentity ? (
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <IdentitySection label="Tagline">
-                      <p className="text-sm text-zinc-100">{displayedIdentity.tagline}</p>
-                    </IdentitySection>
-
-                    <IdentitySection label="Brand values">
-                      <KeywordGroup items={displayedIdentity.brandValues} />
-                    </IdentitySection>
-
-                    <IdentitySection label="Brand aesthetic">
-                      <KeywordGroup items={displayedIdentity.brandAesthetic} />
-                    </IdentitySection>
-
-                    <IdentitySection label="Tone of voice">
-                      <KeywordGroup items={displayedIdentity.toneOfVoice} />
-                    </IdentitySection>
-
-                    <div className="md:col-span-2">
-                      <IdentitySection label="Business overview">
-                        <p className="text-sm leading-6 text-zinc-300">{displayedIdentity.businessOverview}</p>
-                      </IdentitySection>
-                    </div>
-
-                    {generatedIdentity ? (
-                      <div className="flex flex-wrap gap-2 md:col-span-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="border-white/15 bg-white/0 text-white hover:bg-white/10"
-                          onClick={() => {
-                            setMessage("");
-                            setWebsiteModalOpen(true);
-                          }}
-                        >
-                          <RefreshCw className="size-4" />
-                          Not good enough
-                        </Button>
-
-                        {authUser ? (
-                          <Button
-                            type="button"
-                            disabled={saving || !generatedIdentity.businessOverview.trim() || !generatedIdentity.tagline.trim()}
-                            className="bg-emerald-400 text-black hover:bg-emerald-300"
-                            onClick={() => {
-                              clearPendingSave();
-                              setAutoSaveArmed(false);
-                              void saveGeneratedIdentity(generatedIdentity);
-                            }}
-                          >
-                            {saving ? (
-                              <>
-                                <LoaderCircle className="size-4 animate-spin" />
-                                Saving...
-                              </>
-                            ) : (
-                              <>
-                                <BadgeCheck className="size-4" />
-                                Looks good, save
-                              </>
-                            )}
-                          </Button>
-                        ) : (
-                          <LoginModalTrigger
-                            label={
-                              <span className="inline-flex items-center gap-2">
-                                <BadgeCheck className="size-4" />
-                                Looks good, log in to save
-                              </span>
-                            }
-                            nextPath="/brand"
-                            className="bg-emerald-400 text-black hover:bg-emerald-300"
-                            onOpen={onAskToSaveAfterLogin}
-                          />
-                        )}
-                      </div>
-                    ) : null}
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <div className="rounded-2xl border border-amber-300/20 bg-amber-400/10 p-4 text-sm text-amber-100">
-                      This brand was saved before structured identity fields were added. Regenerate from the
-                      website to populate logo, tagline, brand values, brand aesthetic, tone of voice, and
-                      business overview.
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ) : null}
+          <BrandIdentityCard
+            authUserExists={Boolean(authUser)}
+            displayedIdentity={displayedIdentity}
+            displayedLogoUrl={displayedLogoUrl}
+            generatedIdentity={generatedIdentity}
+            savedIdentityExists={savedIdentityExists}
+            saving={saving}
+            websiteInput={websiteInput}
+            onChangeIdentity={updateIdentityDraft}
+            onRegenerate={() => {
+              setMessage("");
+              setWebsiteModalOpen(true);
+            }}
+            onSave={() => {
+              if (!generatedIdentity) return;
+              clearPendingSave();
+              setAutoSaveArmed(false);
+              void saveGeneratedIdentity(generatedIdentity);
+            }}
+            onAskToSaveAfterLogin={onAskToSaveAfterLogin}
+          />
 
           {!savedIdentityExists && !generatedIdentity && !scanLoading ? (
             <Card className="border-dashed border-white/10 bg-[#0b0f15]/80 text-white shadow-[0_18px_60px_rgba(0,0,0,0.25)]">
@@ -639,91 +436,15 @@ export default function BrandPage() {
         </section>
       </div>
 
-      {websiteModalOpen ? (
-        <div
-          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
-          onClick={() => {
-            if (savedIdentityExists || generatedIdentity) {
-              setWebsiteModalOpen(false);
-            }
-          }}
-        >
-          <div
-            className="w-full max-w-xl rounded-3xl border border-white/10 bg-[#0c1016] p-6 text-white shadow-[0_24px_80px_rgba(0,0,0,0.45)]"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div className="space-y-2">
-                <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.18em] text-zinc-400">
-                  <Globe2 className="size-3.5" />
-                  Step 1
-                </div>
-                <h2 className="text-2xl font-semibold tracking-[-0.03em] text-white">
-                  Enter the brand website
-                </h2>
-                <p className="text-sm text-zinc-400">
-                  If the user has not set up the brand identity yet, this is the first thing we ask for.
-                </p>
-              </div>
-
-              {savedIdentityExists || generatedIdentity ? (
-                <button
-                  type="button"
-                  className="rounded-full p-2 text-zinc-400 transition hover:bg-white/10 hover:text-white"
-                  onClick={() => setWebsiteModalOpen(false)}
-                  aria-label="Close website modal"
-                >
-                  <X className="size-4" />
-                </button>
-              ) : null}
-            </div>
-
-            <div className="mt-6 space-y-4">
-              <Input
-                type="text"
-                inputMode="url"
-                autoFocus
-                value={websiteInput}
-                onChange={(event) => setWebsiteInput(event.target.value)}
-                placeholder="https://www.yourstore.com"
-                className="h-11 border-white/10 bg-white/5 px-4 text-white placeholder:text-zinc-500"
-              />
-
-              <div className="flex flex-wrap justify-end gap-2">
-                {(savedIdentityExists || generatedIdentity) && !scanLoading ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="border-white/15 bg-white/0 text-white hover:bg-white/10"
-                    onClick={() => setWebsiteModalOpen(false)}
-                  >
-                    Cancel
-                  </Button>
-                ) : null}
-
-                <Button
-                  type="button"
-                  disabled={scanLoading}
-                  className="bg-emerald-400 text-black hover:bg-emerald-300"
-                  onClick={onGenerateIdentity}
-                >
-                  {scanLoading ? (
-                    <>
-                      <LoaderCircle className="size-4 animate-spin" />
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="size-4" />
-                      Generate brand identity
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <WebsiteModal
+        open={websiteModalOpen}
+        canClose={savedIdentityExists || Boolean(generatedIdentity)}
+        loading={scanLoading}
+        websiteInput={websiteInput}
+        onClose={() => setWebsiteModalOpen(false)}
+        onGenerate={onGenerateIdentity}
+        onWebsiteInputChange={setWebsiteInput}
+      />
     </>
   );
 }

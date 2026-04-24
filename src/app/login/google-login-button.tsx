@@ -27,9 +27,8 @@ export default function GoogleLoginButton({
     setLoading(true);
     const supabase = createClient();
     const safeNextPath = nextPath.startsWith("/") ? nextPath : "/generation";
-    const absoluteNext = `${window.location.origin}${safeNextPath}`;
     const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(
-      absoluteNext
+      safeNextPath
     )}`;
 
     const { error } = await supabase.auth.signInWithOAuth({
