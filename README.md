@@ -20,9 +20,7 @@ Open Ecommerce is a product-ready platfrom that help ecommerce start-ups generat
 **Open Ecommerce** works in 4 key steps:
 1. **Extract Business DNA**: Deep analysis using Vision AI and headless browsers to understand your brand identity, visual style, and core messaging.
 ![Extract Business DNA](https://anoreatdtemjsoyrjlnk.supabase.co/storage/v1/object/public/github/Extract%20Business%20DNA.gif)
-
-
-2. **Generate Templates**: Generate creative templates for paid ads, social media, website, email marketing and so on
+2. **Select Template**: Select the creative template for paid ads, social media, website, email marketing, or other purpose
 3. **Input Your Product**: Upload your own product image, tagline, background reference image to generate creative using the templates
 4. **Refine Creatives**: Select and refine the creatives to make the generated creatives fully follow your needs
 
