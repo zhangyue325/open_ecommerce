@@ -8,6 +8,13 @@ type SaveBrandIdentityPayload = {
   brandIdentity?: unknown;
   logoUrl?: unknown;
   websiteUrl?: unknown;
+  products?: unknown;
+};
+
+type BrandProduct = {
+  title: string;
+  imageUrl: string;
+  url: string;
 };
 
 export async function POST(req: Request) {
@@ -30,6 +37,7 @@ export async function POST(req: Request) {
   const brandIdentity = body.brandIdentity as BrandIdentity;
   const logoUrl = typeof body.logoUrl === "string" ? body.logoUrl : "";
   const websiteUrl = typeof body.websiteUrl === "string" ? body.websiteUrl.trim() : "";
+  const products = normalizeProducts(body.products);
 
   const savedLogoUrl = await saveLogoToStorageIfNeeded(supabase, user.id, logoUrl || null);
   const mainPrompt = buildMainPromptFromIdentity(brandIdentity);
@@ -45,7 +53,7 @@ export async function POST(req: Request) {
   if (existing?.id) {
     const { error } = await supabase
       .from("setting")
-      .update({ main_prompt: mainPrompt, logo: savedLogoUrl, website_url: websiteUrl })
+      .update({ main_prompt: mainPrompt, logo: savedLogoUrl, website_url: websiteUrl, products })
       .eq("id", existing.id);
 
     if (error) return Response.json({ error: error.message }, { status: 500 });
@@ -59,6 +67,7 @@ export async function POST(req: Request) {
       main_prompt: mainPrompt,
       logo: savedLogoUrl,
       website_url: websiteUrl,
+      products,
       purpose_prompt: {},
       sample_image: {},
     })
@@ -67,6 +76,21 @@ export async function POST(req: Request) {
 
   if (error) return Response.json({ error: error.message }, { status: 500 });
   return Response.json({ ok: true, settingId: data.id });
+}
+
+function normalizeProducts(value: unknown): BrandProduct[] {
+  if (!Array.isArray(value)) return [];
+
+  return value.filter((item): item is BrandProduct => {
+    if (!item || typeof item !== "object") return false;
+
+    const product = item as Partial<BrandProduct>;
+    return (
+      typeof product.title === "string" &&
+      typeof product.imageUrl === "string" &&
+      typeof product.url === "string"
+    );
+  });
 }
 
 function isValidBrandIdentity(value: unknown): value is BrandIdentity {

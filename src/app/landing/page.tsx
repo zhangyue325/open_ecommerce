@@ -211,7 +211,7 @@ export default function LandingPage() {
       <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-16 pt-10 sm:px-6 lg:px-8">
         <section className="reveal-up text-center">
           <p className="mx-auto inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-3 py-1 text-xs font-medium tracking-[0.18em] text-zinc-300 uppercase">
-            Built for e-commerce 🛍️
+            Built for e-commerce in Shopify
           </p>
           <h1 className="mx-auto mt-5 max-w-4xl text-balance text-4xl font-semibold leading-tight tracking-[-0.03em] text-white md:text-6xl">
             Generate ecommerce contents that follow {" "}

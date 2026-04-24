@@ -10,9 +10,16 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import LoginModalTrigger from "../login/login-modal-trigger";
 
+type BrandProduct = {
+  title: string;
+  imageUrl: string;
+  url: string;
+};
+
 type GeneratedIdentity = BrandIdentity & {
   websiteUrl: string;
   logoUrl: string;
+  products?: BrandProduct[];
 };
 
 function IdentitySection({ label, children }: { label: string; children: ReactNode }) {
@@ -28,6 +35,7 @@ type BrandIdentityCardProps = {
   authUserExists: boolean;
   displayedIdentity: BrandIdentity | null;
   displayedLogoUrl: string;
+  displayedProducts: BrandProduct[];
   generatedIdentity: GeneratedIdentity | null;
   savedIdentityExists: boolean;
   saving: boolean;
@@ -42,6 +50,7 @@ export default function BrandIdentityCard({
   authUserExists,
   displayedIdentity,
   displayedLogoUrl,
+  displayedProducts,
   generatedIdentity,
   savedIdentityExists,
   saving,
@@ -162,8 +171,36 @@ export default function BrandIdentityCard({
               </IdentitySection>
             </div>
 
+            {displayedProducts.length ? (
+              <div className="md:col-span-2">
+                <IdentitySection label="Products found">
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {displayedProducts.map((product) => (
+                      <a
+                        key={`${product.url}-${product.imageUrl}`}
+                        href={product.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="group grid grid-cols-[64px_minmax(0,1fr)] gap-3 rounded-xl border border-white/10 bg-black/20 p-2 transition hover:border-white/25"
+                      >
+                        <img
+                          src={product.imageUrl}
+                          alt={product.title}
+                          className="aspect-square w-16 rounded-lg bg-white object-cover"
+                        />
+                        <div className="min-w-0 self-center text-sm leading-5 text-zinc-200 group-hover:text-white">
+                          <span className="line-clamp-2">{product.title}</span>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                </IdentitySection>
+              </div>
+            ) : null}
+
             {generatedIdentity ? (
-              <div className="flex flex-wrap gap-2 md:col-span-2">
+              <div className="space-y-4 md:col-span-2">
+                <div className="flex flex-wrap gap-2">
                 <Button
                   type="button"
                   variant="outline"
@@ -206,6 +243,7 @@ export default function BrandIdentityCard({
                     onOpen={onAskToSaveAfterLogin}
                   />
                 )}
+                </div>
               </div>
             ) : null}
           </div>

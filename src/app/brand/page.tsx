@@ -18,6 +18,7 @@ import {
   clearDraft,
   clearPendingSave,
   type BrandDraft,
+  type BrandProduct,
   hasSavedIdentity,
   normalizeWebsiteInput,
   readDraft,
@@ -32,6 +33,7 @@ type SettingRecord = {
   user_id?: string | null;
   logo: string | null;
   main_prompt: string | null;
+  products?: unknown;
   purpose_prompt: unknown;
   sample_image?: unknown;
 };
@@ -41,6 +43,7 @@ type GeneratedIdentity = BrandDraft;
 type ScanPromptResponse = {
   normalizedUrl: string;
   brandIdentity?: BrandIdentity;
+  products?: BrandProduct[];
   error?: string;
 };
 
@@ -67,8 +70,10 @@ export default function BrandPage() {
     () => parseStructuredBrandIdentity(setting?.main_prompt ?? ""),
     [setting?.main_prompt]
   );
+  const savedProducts = useMemo(() => normalizeProducts(setting?.products), [setting?.products]);
   const displayedIdentity = generatedIdentity ?? savedStructuredIdentity;
   const displayedLogoUrl = generatedIdentity?.logoUrl || setting?.logo || "";
+  const displayedProducts = generatedIdentity?.products ?? savedProducts;
 
   const saveGeneratedIdentity = useCallback(
     async (identity: GeneratedIdentity) => {
@@ -79,6 +84,7 @@ export default function BrandPage() {
         user_id: authUser.id,
         logo: identity.logoUrl || null,
         main_prompt: buildMainPromptFromIdentity(identity),
+        products: identity.products ?? [],
         purpose_prompt: setting?.purpose_prompt ?? {},
         sample_image: setting?.sample_image ?? {},
       };
@@ -283,6 +289,7 @@ export default function BrandPage() {
         brandAesthetic: promptData.brandIdentity.brandAesthetic,
         toneOfVoice: promptData.brandIdentity.toneOfVoice,
         businessOverview: promptData.brandIdentity.businessOverview,
+        products: promptData.products ?? [],
       });
       setWebsiteInput(nextWebsiteUrl);
       setMessage("Brand identity generated. Review it before saving.");
@@ -313,6 +320,7 @@ export default function BrandPage() {
       toneOfVoice: patch.toneOfVoice ?? current?.toneOfVoice ?? displayedIdentity.toneOfVoice,
       businessOverview:
         patch.businessOverview ?? current?.businessOverview ?? displayedIdentity.businessOverview,
+      products: patch.products ?? current?.products ?? displayedProducts,
     }));
 
     setMessage("Brand identity edited. Save changes when ready.");
@@ -348,10 +356,6 @@ export default function BrandPage() {
                 <Sparkles className="size-3.5" />
                 Brand identity
               </div>
-              <p className="max-w-2xl text-sm text-zinc-400">
-                Generate your brand identity from the website and review the logo, tagline, brand values,
-                brand aesthetic, tone of voice, and business overview here.
-              </p>
             </div>
 
             <Button
@@ -393,6 +397,7 @@ export default function BrandPage() {
             authUserExists={Boolean(authUser)}
             displayedIdentity={displayedIdentity}
             displayedLogoUrl={displayedLogoUrl}
+            displayedProducts={displayedProducts}
             generatedIdentity={generatedIdentity}
             savedIdentityExists={savedIdentityExists}
             saving={saving}
@@ -447,4 +452,19 @@ export default function BrandPage() {
       />
     </>
   );
+}
+
+function normalizeProducts(value: unknown): BrandProduct[] {
+  if (!Array.isArray(value)) return [];
+
+  return value.filter((item): item is BrandProduct => {
+    if (!item || typeof item !== "object") return false;
+
+    const product = item as Partial<BrandProduct>;
+    return (
+      typeof product.title === "string" &&
+      typeof product.imageUrl === "string" &&
+      typeof product.url === "string"
+    );
+  });
 }

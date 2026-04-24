@@ -10,6 +10,7 @@ import {
   fetchWebsiteMetadata,
   type WebsiteMetadata,
 } from "@/lib/website-scan";
+import { fetchSitemapProducts } from "@/lib/shopify-product-sitemap";
 
 type ScanWebsitePromptPayload = {
   websiteUrl?: string;
@@ -24,7 +25,10 @@ export async function POST(req: Request) {
     }
 
     const metadata = await fetchWebsiteMetadata(websiteUrl);
-    const brandIdentity = await generateBrandIdentity(metadata);
+    const [brandIdentity, products] = await Promise.all([
+      generateBrandIdentity(metadata),
+      fetchSitemapProducts(metadata.normalizedUrl),
+    ]);
     const mainPrompt = buildMainPromptFromIdentity(brandIdentity);
 
     return Response.json({
@@ -33,6 +37,7 @@ export async function POST(req: Request) {
       title: metadata.title,
       description: metadata.description,
       brandIdentity,
+      products,
       mainPrompt,
     });
   } catch (error) {

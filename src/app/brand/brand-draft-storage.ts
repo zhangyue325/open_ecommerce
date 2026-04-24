@@ -3,6 +3,13 @@ import type { BrandIdentity } from "@/lib/brand-identity";
 export type BrandDraft = BrandIdentity & {
   websiteUrl: string;
   logoUrl: string;
+  products?: BrandProduct[];
+};
+
+export type BrandProduct = {
+  title: string;
+  imageUrl: string;
+  url: string;
 };
 
 const BRAND_DRAFT_KEY = "brand-page-generated-draft";
@@ -51,6 +58,9 @@ export function readDraft() {
       brandAesthetic: parsed.brandAesthetic.filter((item): item is string => typeof item === "string"),
       toneOfVoice: parsed.toneOfVoice.filter((item): item is string => typeof item === "string"),
       businessOverview: parsed.businessOverview,
+      products: Array.isArray(parsed.products)
+        ? parsed.products.filter(isBrandProduct)
+        : [],
     } satisfies BrandDraft;
   } catch {
     return null;
@@ -80,4 +90,15 @@ export function writePendingSave() {
 export function clearPendingSave() {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem(BRAND_PENDING_SAVE_KEY);
+}
+
+function isBrandProduct(value: unknown): value is BrandProduct {
+  if (!value || typeof value !== "object") return false;
+
+  const product = value as Partial<BrandProduct>;
+  return (
+    typeof product.title === "string" &&
+    typeof product.imageUrl === "string" &&
+    typeof product.url === "string"
+  );
 }
