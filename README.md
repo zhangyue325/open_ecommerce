@@ -1,7 +1,7 @@
 # Open Ecommerce: Generate ecommerce contents that follow brand DNA
 
 <p align="center">
-  <a href="https://openecommerce.app">Open Ecommerce</a> ·
+  <a href="https://openecommerce.app">Open Ecommerce</a>
 </p>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -12,8 +12,9 @@ Open Ecommerce is a product-ready platfrom that help ecommerce start-ups generat
 
 **Open Ecommerce** offers several advantages:
 - **Tailored for Ecommerce**: Open Ecommerce is designed for ecoomerce starups to generate creatives for paid ads, social media, website, email marketing and so on
-- **Align with Brand**: Open Ecommerce can scan your website to extract the "brand DNA", so the generated creatives always follow the "brand DNA"
+- **Align with Brand DNA**: Open Ecommerce can scan your website to extract the "brand DNA", so the generated creatives always follow the "brand DNA"
 - **Easy to Use**: Open Ecommerce provides templates follows your "brand DNA", so ecoomerce starups can generate creatives in few clicks without design expertise 
+- **Best Models in the Market**: Open Ecommerce doesn’t rely only on Google’s AI. It offers the flexibility to use top models like GPT Image 2, SeaDream 4.0, and other leading options
 
 ## ✨ How to Use?
 
@@ -30,9 +31,23 @@ Open Ecommerce is a product-ready platfrom that help ecommerce start-ups generat
 | Feature | Open Ecommerce | Google Pomelli | OpenArt | Higgsfield |
 |---------|---------------|----------------|------------|------------|
 | Business DNA Extraction | ✅ | ✅ | ❌ | ❌ |
-| Tailored for Ecommerce | ✅ | ❌ | ❌ | ❌ |
+| Tailored for Ecommerce | ✅ | ❌ | ❌ | ❌ | 
 | Open Source | ✅ | ❌ | ❌ | ❌ |
 | Multiple AI Models | ✅ | ❌(only Goolge's own model is used) | ✅ | ✅ |
+
+
+## 📝 Plan and Roadmap
+
+| Task | Statups |
+|---------------------------------------------------------------|------------|
+| Build and Host the Frontend and Database | ✅ |
+| Setup login with Supabase | ✅ |
+| Extract Brand DNA from Website | ✅ |
+| Have a better version of generation page (can refer to capcut ) | ⌛ |
+| Refine context management and system prompt | ⌛ |
+| Enable GPT Image 2, SeaDream 4.0 | ⌛ | 
+| Generate templates using brand DNA instead of built-in templates | ⌛ | 
+| Use website brwoser agent to fetch brand DNA and display the progress on UI (refer to Pomelli)  | ⌛ | 
 
 ---
 
