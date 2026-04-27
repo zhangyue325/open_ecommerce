@@ -38,7 +38,7 @@ Open Ecommerce is a product-ready platfrom that help ecommerce start-ups generat
 
 ## 📝 Plan and Roadmap
 
-| Task | Statups |
+| Task | Status |
 |---------------------------------------------------------------|------------|
 | Build and Host the Frontend and Database | ✅ |
 | Setup login with Supabase | ✅ |
