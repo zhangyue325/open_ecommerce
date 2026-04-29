@@ -76,7 +76,7 @@ Inspired by Google’s Pomelli, Open Ecommerce is designed to be simpler, more a
 
 - Frontend: Next.js / React
 - Database: Supabase
-- AI Models: Nano Banana, GPT Image 2, SeaDream 4.0
+- AI Models: Nano Banana, GPT Image 2, SeeDream 4.0
 
 ---
 
